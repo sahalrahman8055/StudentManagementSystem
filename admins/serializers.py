@@ -7,9 +7,8 @@ class AdminLoginSerializer(serializers.Serializer):
     password = serializers.CharField()
     
     
-class TeacherRegisterSerializer(serializers.ModelSerializer):
-    username = serializers.SerializerMethodField()
-    
+class TeacherListPostSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(required=False)  
 
     class Meta:
         model = User
@@ -17,11 +16,14 @@ class TeacherRegisterSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
+        username = self.generate_username(validated_data['first_name'], validated_data['last_name'])
+        validated_data['username'] = username
+
         role, _ = Role.objects.get_or_create(name='teacher')
         validated_data['role'] = role
         return super().create(validated_data)
     
-    
-    def get_username(self, obj):
-        return f"{obj.first_name.lower()}"
+    def generate_username(self, first_name, last_name):
+        return f"{first_name.lower()}{last_name.lower()}"
+
     
