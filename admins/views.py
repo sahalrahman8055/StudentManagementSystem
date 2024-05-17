@@ -11,7 +11,8 @@ from .serializers import (
      TeacherListSerializer,
      TeacherGetUpdateSerializer,
      StudentListSerializer,
-     StudentGetUpdateSerializer
+     ClassTeacherSerializer,
+     StudentGetUpdateSerializer,
 )
 from rest_framework.views import APIView 
 from django.contrib.auth import authenticate, login
@@ -20,7 +21,7 @@ from admins.utilities.token import get_tokens_for_user
 from admins.models import User , Role
 from rest_framework.permissions import IsAuthenticated
 from django.views.decorators.csrf import csrf_exempt
-from teacher.models import ClassRoom , Teacher
+from teacher.models import ClassRoom , Teacher ,ClassRoomTeacher
 from student.models import Student
 
 class AdminLoginAPIView(APIView):
@@ -122,7 +123,15 @@ class StudentListCreateAPIView(APIView):
             student_serializer.is_valid(raise_exception=True)
         ):
             user_instance = user_serializer.save()
-            student_serializer.save(user=user_instance)          
+            
+            classroom_id = request.GET.get('q')
+            try:
+                classroom = ClassRoom.objects.get(id=classroom_id)
+            except ClassRoom.DoesNotExist:
+                return Response({"msg":"classroom does not exist"}, status=status.HTTP_404_NOT_FOUND)
+            
+            student_serializer.save(user=user_instance, classRoom=classroom)
+            
             return Response(
                 {"message": "Student created successfully"}, 
                 status=status.HTTP_201_CREATED
@@ -177,4 +186,40 @@ class ClassRoomViewset(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         serializer.save()
-         
+
+
+
+class ClassTeacherViewset(viewsets.ModelViewSet):
+    queryset = ClassRoomTeacher.objects.all()
+    serializer_class = ClassTeacherSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def create(self, request, *args, **kwargs):
+        Q_Base = request.GET.get('q')
+        if Q_Base:
+            try:
+                classroom = ClassRoom.objects.get(id=Q_Base)
+            except ClassRoom.DoesNotExist:
+                return Response({"msg":"Teacher Not exist"},status=status.HTTP_404_NOT_FOUND)
+            
+            teacher_id = request.data.get('teacher_id')
+            
+            if teacher_id:
+                try:
+                    teacher = Teacher.objects.get(user_id=teacher_id)
+                except Teacher.DoesNotExist:
+                    return Response({"msg": "Teacher does not exist"}, status=status.HTTP_404_NOT_FOUND)
+                
+                class_teacher, _ = ClassRoomTeacher.objects.get_or_create(
+                    teacher=teacher,
+                    classroom=classroom,
+                )
+                
+                class_teacher.is_class_teacher = True
+                class_teacher.save()
+                
+                return Response({"msg": "Class teacher assigned successfully"}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({"msg": "Teacher ID not provided in the request"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"msg": "Classroom ID not provided in the request"}, status=status.HTTP_400_BAD_REQUEST)

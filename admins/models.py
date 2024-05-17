@@ -25,7 +25,6 @@ class User(AbstractUser):
     email = models.EmailField(
         verbose_name="email address",
         max_length=255,
-        unique=True,
     )
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
     date_of_birth = models.DateField(blank=True,null=True)
@@ -34,7 +33,7 @@ class User(AbstractUser):
     updated_at = models.DateTimeField(auto_now=True)    
     
     USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['email']
+    REQUIRED_FIELDS = []
     
     def __str__(self):
         return f"{self.name} {self.username}"

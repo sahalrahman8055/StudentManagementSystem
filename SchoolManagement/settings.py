@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'admins',
     'teacher',
     'student',
+    'schoolbus',
 ]
 
 MIDDLEWARE = [

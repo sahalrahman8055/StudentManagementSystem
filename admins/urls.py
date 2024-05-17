@@ -6,7 +6,8 @@ from admins.views import (
      TeacherListCreateAPIView , 
      StudentListCreateAPIView ,
      TeacherGetUpdateViewset,
-     StudentGetUpdateViewset
+     StudentGetUpdateViewset,
+     ClassTeacherViewset
 )
 
 router = DefaultRouter()
@@ -14,6 +15,7 @@ router = DefaultRouter()
 router.register(r'classroom', ClassRoomViewset)
 router.register(r'teacher', TeacherGetUpdateViewset,basename='teacher')
 router.register(r'student', StudentGetUpdateViewset,basename='student')
+router.register(r'classteacher', ClassTeacherViewset,basename='classTeacher')
 
 
 urlpatterns = [
@@ -31,6 +33,6 @@ urlpatterns = [
     path(
         'register/student/', 
         StudentListCreateAPIView.as_view(),
-        name='student'
+        name='students'
     ),
 ]
