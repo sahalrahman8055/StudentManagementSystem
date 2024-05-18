@@ -18,4 +18,4 @@ class RouteAdmin(admin.ModelAdmin):
 
 @admin.register(BusPoint)
 class BusPointAdmin(admin.ModelAdmin):
-    list_display = ('route', 'name', 'fee')
+    list_display = ('id','route', 'name', 'fee')

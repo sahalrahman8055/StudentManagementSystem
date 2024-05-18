@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from schoolbus.views import (
     BusViewset,
     RouteViewset,
-    BusPointViewset
+    BusPointViewset,
 )
 
 router = DefaultRouter()
@@ -14,5 +14,5 @@ router.register(r'buspoint', BusPointViewset,basename='buspoint')
 
 
 urlpatterns = [
-    path('',include(router.urls))
+    path('',include(router.urls)),
 ]

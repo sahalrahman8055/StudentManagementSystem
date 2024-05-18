@@ -6,10 +6,10 @@ from rest_framework.permissions import IsAuthenticated
 from schoolbus.serializers import (
     BusSerializer,
     RouteSerializer,
-    BusRouteSerializer
+    BusPointSerializer,
 ) 
 from schoolbus.models import Bus , Route , BusPoint
-
+from student.models import Student
 
 
 
@@ -42,4 +42,7 @@ class RouteViewset(viewsets.ModelViewSet):
 
 class BusPointViewset(viewsets.ModelViewSet):
     queryset = BusPoint.objects.all()
-    serializer_class = BusRouteSerializer
+    serializer_class = BusPointSerializer
+    
+
+

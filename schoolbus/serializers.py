@@ -1,21 +1,21 @@
 from rest_framework import serializers
 from schoolbus.models import Bus , BusPoint , Route
+from student.models import Student
 
 
 
 
 
-
-class BusRouteSerializer(serializers.ModelSerializer):
+class BusPointSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = BusPoint
-        fields = ['route','name','fee']
+        fields = ['id','route','name','fee']
 
     
     
 class RouteSerializer(serializers.ModelSerializer):
-    bus_points = BusRouteSerializer(many=True,read_only=True)
+    bus_points = BusPointSerializer(many=True,read_only=True)
     
     class Meta:
         model = Route
@@ -50,3 +50,5 @@ class BusSerializer(serializers.ModelSerializer):
         
         instance.save()
         return instance
+    
+    
