@@ -159,7 +159,6 @@ class StudentGetUpdateViewset(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
-            print(instance)
             serializer = self.get_serializer(instance, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
             self.perform_update(serializer)
