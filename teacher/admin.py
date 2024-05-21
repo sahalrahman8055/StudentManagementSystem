@@ -6,4 +6,4 @@ from teacher.models import ClassRoom , Teacher
 admin.site.register(Teacher)
 @admin.register(ClassRoom)
 class ClassROomAdmin(admin.ModelAdmin):
-    list_display = ('name','capacity')
+    list_display = ('id','name','capacity')

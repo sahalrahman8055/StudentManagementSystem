@@ -10,9 +10,16 @@ class Student(models.Model):
     guardian_name = models.CharField(max_length=150)
     address = models.TextField(max_length=250,blank=True,null=True)
     classRoom = models.ForeignKey(ClassRoom, on_delete=models.CASCADE, blank=True,null=True, related_name='students')
-    bus = models.ForeignKey(Bus, related_name='students', on_delete=models.SET_NULL, null=True)
-    route = models.ForeignKey(Route, related_name='students', on_delete=models.SET_NULL, null=True)
-    bus_point = models.ForeignKey(BusPoint, related_name='students', on_delete=models.SET_NULL, null=True)
     
     def __str__(self) -> str:
         return self.user.name
+    
+class StudentBusService(models.Model):
+    student = models.OneToOneField(Student, on_delete=models.CASCADE, related_name='bus_service')
+    bus = models.ForeignKey(Bus, on_delete=models.SET_NULL, null=True, blank=True)
+    route = models.ForeignKey(Route, on_delete=models.SET_NULL, null=True, blank=True)
+    bus_point = models.ForeignKey(BusPoint, on_delete=models.SET_NULL, null=True, blank=True)
+    annual_fees = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    
+    def __str__(self) -> str:
+        return f"{self.student.user.name} is in {self.bus.bus_no} rout no:{self.route.route_no} to {self.bus_point.name}"

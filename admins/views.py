@@ -23,6 +23,11 @@ from rest_framework.permissions import IsAuthenticated
 from django.views.decorators.csrf import csrf_exempt
 from teacher.models import ClassRoom , Teacher ,ClassRoomTeacher
 from student.models import Student
+from django.core.mail import send_mail
+from django.conf import settings
+from .utilities.utils import send_teacher_email
+
+
 
 class AdminLoginAPIView(APIView):
     def post(self, request):
@@ -55,15 +60,30 @@ class TeacherListCreateAPIView(APIView):
         user_serializer = UserSerializer(data=request.data)
         teacher_serializer = TeacherPostSerializer(data=request.data)
 
-        if user_serializer.is_valid(raise_exception=True) and (
-            teacher_serializer.is_valid(raise_exception=True)
-            ):
+        if user_serializer.is_valid(raise_exception=True) and teacher_serializer.is_valid(raise_exception=True):
             user_instance = user_serializer.save()
-            teacher_serializer.save(user=user_instance)   
+            teacher_instance = teacher_serializer.save(user=user_instance)
+            
+            # Set the password for the user using pen_no
+            pen_no = teacher_instance.pen_no
+            username = user_instance.username
+            user_instance.set_password(pen_no)
+            user_instance.save()
+
+            send_teacher_email(user_instance, username, pen_no)
+
+            user_data = user_serializer.data
+            teacher_data = TeacherPostSerializer(teacher_instance).data
+            response_data = {
+                "user": user_data,
+                "teacher": teacher_data
+            }
+
             return Response(
-                {"message": "Teacher created successfully"}, 
+                {"message": "Teacher created successfully", "data": response_data}, 
                 status=status.HTTP_201_CREATED
             )
+        
         return Response(
             {"message": "Error creating teacher"}, 
             status=status.HTTP_400_BAD_REQUEST

@@ -22,14 +22,14 @@ class UserSerializer(serializers.ModelSerializer):
 class TeacherPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Teacher
-        fields = ['id', 'pen_no', 'short']
+        fields = ['id', 'pen_no']
         extra_kwargs = {'password': {'write_only': True}}
 
 
 class TeacherChoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Teacher
-        fields = ['pen_no', 'short']
+        fields = ['pen_no']
 
 class TeacherListSerializer(serializers.ModelSerializer):
     teacher = TeacherChoiceSerializer()
