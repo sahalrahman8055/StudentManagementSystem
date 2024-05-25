@@ -121,7 +121,7 @@ class StudentChoiceSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Student
-        fields = ['id', 'admission_no', 'guardian_name', 'address']
+        fields = ['id', 'admission_no', 'guardian_name', 'address','classRoom']
         # , 'pincode', 'house_name', 'post_office','place']
 
     

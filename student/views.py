@@ -4,12 +4,11 @@ from schoolbus.models import Bus,BusPoint,Route
 from rest_framework.response import Response
 from rest_framework import status
 from student.serializers import (
-    # StudentBusSerializer,
-    # StudentBusGetSerializer,
-    StudentSerializer,
-    StudentBusssSerializer,
+    StudentBusServiceSerializer,
+    StudentBusSerializer,
     BusAssignmentSerializer,
     RouteSerializer,
+    StudentByRouteSerializer
 )
 from django.db import transaction
 from django.db.models import Q
@@ -35,11 +34,17 @@ class AssignBusServiceAPIView(APIView):
   
     def get(self, request, student_id):
         try:
-            student = Student.objects.select_related('bus', 'route', 'bus_point').get(user_id=student_id)
-        except Student.DoesNotExist:
-            return Response({"error": "Student not found."}, status=status.HTTP_404_NOT_FOUND)
-        
-        serializer = StudentSerializer(student)
+            bus_service = (
+                    StudentBusService.objects
+                    .select_related('student')
+                    .get(student__user_id=student_id)
+            )
+        except StudentBusService.DoesNotExist:
+            return Response(
+                {"error": "Bus service for student not found."}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        serializer = StudentBusServiceSerializer(bus_service)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     
@@ -49,7 +54,6 @@ class AssignBusServiceAPIView(APIView):
             route_number = serializer.validated_data['route_number']
             bus_point_id = serializer.validated_data['bus_point_id']
             
-            # Retrieve the specific route and bus point
             try:
                 route = Route.objects.get(route_no=route_number, bus_points__id=bus_point_id)
                 bus_point = BusPoint.objects.get(id=bus_point_id)
@@ -58,13 +62,11 @@ class AssignBusServiceAPIView(APIView):
             except BusPoint.DoesNotExist:
                 return Response({"error": "No matching bus point found."}, status=status.HTTP_404_NOT_FOUND)
             
-            # Fetch the existing student instance
             try:
                 student = Student.objects.get(user_id=student_id)
             except Student.DoesNotExist:
                 return Response({"error": "Student not found."}, status=status.HTTP_404_NOT_FOUND)
 
-            # Create or update the StudentBusService instance
             bus_service, created = StudentBusService.objects.get_or_create(student=student)
             bus_service.bus = route.bus
             bus_service.route = route
@@ -78,9 +80,29 @@ class AssignBusServiceAPIView(APIView):
             bus.capacity = max(bus.capacity - 1, 0)  
             bus.save()
 
+            student.is_bus = True
+            student.save()
+            
             bus_service.save()
             
-            serializer = StudentBusssSerializer(student)
+            serializer = StudentBusSerializer(student)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class StudentsByRouteAPIView(APIView):
+
+    def get(self, request, route_id):
+        try:
+            route = Route.objects.select_related('bus').prefetch_related('bus_points').get(id=route_id)
+        except Route.DoesNotExist:
+            return Response(
+                {"error": "Route not found."}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = StudentByRouteSerializer(route)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    
