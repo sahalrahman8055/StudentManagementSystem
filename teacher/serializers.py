@@ -23,7 +23,7 @@ class StudentSerializer(serializers.ModelSerializer):
         model = Student
         fields = ['id', 'user', 'admission_no', 'classRoom']
 
-class ClassRoomSerializer(serializers.ModelSerializer):
+class ClassRoomGetSerializer(serializers.ModelSerializer):
     students = StudentSerializer(many=True, read_only=True)
 
     class Meta:

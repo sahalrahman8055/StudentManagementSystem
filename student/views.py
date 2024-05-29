@@ -7,7 +7,7 @@ from student.serializers import (
     StudentBusServiceSerializer,
     StudentBusSerializer,
     BusAssignmentSerializer,
-    RouteSerializer,
+    RouteListSerializer,
     StudentByRouteSerializer
 )
 from django.db import transaction
@@ -23,7 +23,7 @@ class BusPointSearchAPIView(APIView):
             bus_points = BusPoint.objects.filter(name__icontains=search_query).select_related('route', 'route__bus')
             if bus_points.exists():
                 routes = {bp.route for bp in bus_points}
-                serializer = RouteSerializer(routes, many=True, context={'request': request})
+                serializer = RouteListSerializer(routes, many=True, context={'request': request})
                 return Response(serializer.data, status=status.HTTP_200_OK)
             return Response({"error": "No routes found for the given bus point name."}, status=status.HTTP_404_NOT_FOUND)
         else:
