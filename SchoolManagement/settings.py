@@ -156,8 +156,18 @@ EMAIL_HOST_USER =  os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD= os.getenv('EMAIL_HOST_PASSWORD')
 
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://school-management-system-xbpl.onrender.com',
+]
+
+
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:8000',
     'https://school-management-system-xbpl.onrender.com'
+]
+
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
 ]
