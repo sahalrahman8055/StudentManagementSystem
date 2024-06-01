@@ -1,44 +1,51 @@
-
-from typing import Iterable
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
-from django.contrib.auth.models import BaseUserManager, AbstractUser
 
-
-
-
-class Role(models.Model):
-    name = models.CharField(max_length=150)
+class CustomUserManager(BaseUserManager):
     
-    def __str__(self):
-        return self.name
-    
-    
+    def create_user(self, username, password=None, **extra_fields):
+        if not username:
+            raise ValueError('The username field must be set')
+        user = self.model(username=username, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
 
-class User(AbstractUser):
+    def create_superuser(self, username,  password=None):
+
+        user = self.create_user(
+            username,
+            password=password,
+        )
+        user.is_superuser = True
+        user.is_staff = True
+        user.save(using=self._db)
+        return user
+    
+    
+class User(AbstractBaseUser, PermissionsMixin):
     GENDER_CHOICES = [
         ('M', 'Male'),
         ('F', 'Female'),
     ]
-    name = models.CharField(max_length=150)
-    username = models.CharField(max_length=100,blank=True,null=True,unique=True)
-    phone = models.CharField(max_length=15,blank=True,null=True)
     email = models.EmailField(
         verbose_name="email address",
         max_length=255,
     )
+    name = models.CharField(max_length=150)
+    username = models.CharField(max_length=100,blank=True,null=True,unique=True)
+    phone = models.CharField(max_length=15,blank=True,null=True)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
     date_of_birth = models.DateField(blank=True,null=True)
-    role = models.ForeignKey(Role, on_delete=models.CASCADE,blank=True,null=True)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)    
-    
+    updated_at = models.DateTimeField(auto_now=True)   
+
+    objects = CustomUserManager()
+
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = []
-    
+
     def __str__(self):
-        return f"{self.name} {self.username}"
-    
-    def save(self, *args, **kwargs):
-        if self.is_superuser:
-            self.role,_ = Role.objects.get_or_create(name='admin')
-        super().save(*args, **kwargs)
+        return self.name

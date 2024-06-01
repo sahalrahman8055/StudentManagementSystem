@@ -17,10 +17,12 @@ from django.db.models import Q
 
 class BusPointSearchAPIView(APIView):
     
-     def get(self, request):
+    def get(self, request):
         search_query = request.query_params.get('query', None)
         if search_query:
+            print(f"Search Query: {search_query}") 
             bus_points = BusPoint.objects.filter(name__icontains=search_query).select_related('route', 'route__bus')
+            print(f"Bus Points: {bus_points}") 
             if bus_points.exists():
                 routes = {bp.route for bp in bus_points}
                 serializer = RouteListSerializer(routes, many=True, context={'request': request})
@@ -28,7 +30,6 @@ class BusPointSearchAPIView(APIView):
             return Response({"error": "No routes found for the given bus point name."}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({"error": "Query parameter 'query' is required."}, status=status.HTTP_400_BAD_REQUEST)
-
 
 class AssignBusServiceAPIView(APIView):
   

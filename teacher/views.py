@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login
 from rest_framework.authtoken.models import Token
 from admins.utilities.token import get_tokens_for_user
-from admins.models import User , Role
+# from admins.models import User 
 from rest_framework.permissions import IsAuthenticated
 import logging
 from .models import Teacher, ClassRoomTeacher , ClassRoom
