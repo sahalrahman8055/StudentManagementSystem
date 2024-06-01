@@ -51,18 +51,18 @@ class TeacherLoginAPIView(APIView):
           
           
 class TeacherClassStudentsAPIView(APIView):
-    @swagger_auto_schema(
-        tags=["TEACHER View"],
-        operation_description="Get all classrooms students for the logged-in teacher",
-        responses={
-            200: openapi.Response(
-                description="List of classrooms",
-                schema=ClassRoomGetSerializer(many=True)
-            ),
-            404: "Teacher not found",
-            500: "Internal Server Error"
-        },
-    )
+    # @swagger_auto_schema(
+    #     tags=["TEACHER View"],
+    #     operation_description="Get all classrooms students for the logged-in teacher",
+    #     responses={
+    #         200: openapi.Response(
+    #             description="List of classrooms",
+    #             schema=ClassRoomGetSerializer(many=True)
+    #         ),
+    #         404: "Teacher not found",
+    #         # 500: "Internal Server Error"
+    #     },
+    # )
     
     def get(self, request):
         user = request.user
