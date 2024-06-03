@@ -5,5 +5,5 @@ class AdminsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'admins'
 
-    # def ready(self) -> None:
-    #     import admins.utilities.signals
+    def ready(self) -> None:
+        import admins.utilities.signals

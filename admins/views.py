@@ -49,8 +49,22 @@ class AdminLoginAPIView(APIView):
 
 class TeacherViewSet(viewsets.ModelViewSet):
     queryset = Teacher.objects.all()
-    serializer_class = TeacherSerializer
     permission_classes = [IsAdminUser]
+    serializer_class = TeacherSerializer
+    
+    def update(self, request, *args, **kwargs):
+        try:
+            teacher = self.get_object()
+            serializer = self.get_serializer(teacher, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Teacher.DoesNotExist:
+            return Response({"error": "Teacher not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
     
 
 

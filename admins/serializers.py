@@ -54,7 +54,6 @@ class TeacherSerializer(serializers.ModelSerializer):
         user_data = validated_data.pop('user')
         
         user = instance.user
-        user.username = user_data.get('username', user.username)
         user.email = user_data.get('email', user.email)
         user.name = user_data.get('name', user.name)
         user.phone = user_data.get('phone', user.phone)
@@ -62,7 +61,6 @@ class TeacherSerializer(serializers.ModelSerializer):
         user.date_of_birth = user_data.get('date_of_birth', user.date_of_birth)
         user.save()
 
-        instance.pen_no = validated_data.get('pen_no', instance.pen_no)
         instance.save()
 
         return instance
