@@ -63,7 +63,7 @@ class TeacherClassStudentsAPIView(APIView):
     )
     
     def get(self, request):
-        user = request.user.teacher
+        user = request.user.id
         try:
             teacher = Teacher.objects.get(user=user)
         except Teacher.DoesNotExist:
@@ -101,7 +101,7 @@ class TeacherBusStudentsAPIView(APIView):
     )
     
     def get(self, request):
-        user = request.user.teacher
+        user = request.user.id
 
         try:
             teacher = Teacher.objects.get(user=user)
