@@ -17,39 +17,38 @@ from drf_yasg import openapi
 
 logger = logging.getLogger(__name__)
 
-
 class TeacherLoginAPIView(APIView):
-    
-    @swagger_auto_schema(
-        tags=["TEACHER View"],
-        operation_description="Log in a teacher and return a token",
-        request_body=TeacherLoginSerializer,  # Specify the serializer for request body
-        responses={200: "Login successful", 400: "Invalid input"},
-    )
-    
+
     def post(self, request):
-      serializer = TeacherLoginSerializer(data=request.data)
-      try:
-        if serializer.is_valid():
-            username = serializer.validated_data['username']
-            password = serializer.validated_data['password']
-            user = authenticate(username=username, password=password)
-            if user is not None:
-              login(request, user)
-              token = get_tokens_for_user(user)
-              return Response(
-                  {'message': 'Login successful', 'token':token}, 
-                  status=status.HTTP_200_OK
-              )
-            logger.warning("User authentication failed: No user found with provided credentials.")
-            return Response({'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-      except Exception as e:
+        logger.info('Processing login request...')
+        serializer = TeacherLoginSerializer(data=request.data)
+
+        try:
+            if serializer.is_valid():
+                username = serializer.validated_data['username']
+                password = serializer.validated_data['password']
+
+                user = authenticate(username=username, password=password)
+                if user is not None:
+                    login(request, user)
+                    token = get_tokens_for_user(user)
+                    return Response(
+                        {'message': 'Login successful', 'token': token},
+                        status=status.HTTP_200_OK
+                    )
+                else:
+                    logger.warning("User authentication failed: No user found with provided credentials.")
+                    return Response({'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+            else:
+                logger.warning("Serializer validation failed: %s", serializer.errors)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
             logger.exception("An error occurred during user authentication:")
-            return Response({'message': 'An error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-          
-          
+            return Response({'message': 'An internal server error occurred.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        
+        
 class TeacherClassStudentsAPIView(APIView):
     @swagger_auto_schema(
         tags=["TEACHER View"],
