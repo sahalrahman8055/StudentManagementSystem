@@ -63,6 +63,9 @@ class TeacherClassStudentsAPIView(APIView):
     )
     
     def get(self, request):
+        logger.info(f"Request headers: {request.headers}")
+        logger.info(f"Request user: {request.user}")
+        
         if not request.user.is_authenticated:
             return Response({'message': 'You need to be logged in to perform this action.'}, status=status.HTTP_401_UNAUTHORIZED)
         user = request.user
