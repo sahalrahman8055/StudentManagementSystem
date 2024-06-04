@@ -40,7 +40,6 @@ class TeacherLoginAPIView(APIView):
                     logger.warning("User authentication failed: No user found with provided credentials.")
                     return Response({'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
             else:
-                logger.warning("Serializer validation failed: %s", serializer.errors)
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
