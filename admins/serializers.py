@@ -65,18 +65,7 @@ class TeacherSerializer(serializers.ModelSerializer):
 
         return instance
 
-
-class TeacherChoiceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Teacher
-        fields = ['pen_no']
-
-# class TeacherListSerializer(serializers.ModelSerializer):
-#     teacher = TeacherChoiceSerializer()
-#     class Meta:
-#         model = User
-#         fields = ['id', 'name', 'username', 'phone', 'email','teacher']
-        
+   
         
 # class TeacherGetUpdateSerializer(serializers.ModelSerializer):
 #     teacher = TeacherChoiceSerializer()
@@ -102,20 +91,15 @@ class TeacherChoiceSerializer(serializers.ModelSerializer):
 
     
 
-# class UserStudentSerializer(serializers.ModelSerializer):
+class UserStudentSerializer(serializers.ModelSerializer):
     
-#     class Meta:
-#         model = User
-#         fields = ['id', 'name', 'username','phone','gender', 'role','date_of_birth']
-#         extra_kwargs = {
-#             'email': {'write_only': True, 'required': False}  # Exclude email from validation and creation
-#         }
+    class Meta:
+        model = User
+        fields = ['id', 'name', 'username','phone','gender','date_of_birth']
+        extra_kwargs = {
+            'email': {'write_only': True, 'required': False}  # Exclude email from validation and creation
+        }
         
-        
-    # def create(self,validated_data):
-    #     role, _ = Role.objects.get_or_create(name='student')
-    #     validated_data['role'] = role
-    #     return super().create(validated_data)
 
 
 class StudentSerializer(serializers.ModelSerializer):
@@ -123,13 +107,17 @@ class StudentSerializer(serializers.ModelSerializer):
     house_name = serializers.CharField(max_length=150, required=True)
     post_office = serializers.CharField(max_length=150, required=True)
     place = serializers.CharField(max_length=100,required=True)
+    user = UserStudentSerializer()
 
     class Meta:
         model = Student
-        fields = ['id', 'admission_no', 'guardian_name', 'address', 'pincode', 'house_name', 'post_office','place','classRoom']
+        fields = ['id', 'admission_no', 'guardian_name', 'address', 'pincode', 'house_name', 'post_office','place','classRoom','user']
         
     def create(self, validated_data):
-        # Extracting individual fields from the address
+        user_data = validated_data.pop('user')
+        
+        user = User.objects.create_user(**user_data)
+
         pincode = validated_data.pop('pincode', None)
         house_name = validated_data.pop('house_name', None)
         post_office = validated_data.pop('post_office', None)
@@ -145,72 +133,42 @@ class StudentSerializer(serializers.ModelSerializer):
         if place:
             address += f", {place}"
         
-        student = Student.objects.create(address=address, **validated_data)
+        student = Student.objects.create(user=user , address=address, **validated_data)
+        
+        student_group = Group.objects.get(name='student')
+        user.groups.add(student_group)
         
         return student
-
-
-class StudentChoiceSerializer(serializers.ModelSerializer):
-    # pincode = serializers.CharField(max_length=10, required=True)
-    # house_name = serializers.CharField(max_length=150, required=True)
-    # post_office = serializers.CharField(max_length=150, required=True)
-    # place = serializers.CharField(max_length=100, required=True)
     
-    class Meta:
-        model = Student
-        fields = ['id', 'admission_no', 'guardian_name', 'address','classRoom']
-        # , 'pincode', 'house_name', 'post_office','place']
+    def validate(self, data):
 
-    
-    
-# class StudentListSerializer(serializers.ModelSerializer):
-#     student = StudentChoiceSerializer()
-#     class Meta:
-#         model = User
-#         fields = ['id', 'name', 'username', 'phone','gender', 'role','date_of_birth','student']
-        
-        
-# class StudentGetUpdateSerializer(serializers.ModelSerializer):
-#     student = StudentChoiceSerializer()
+        user_data = data.get('user')
+        username = user_data.get('username')
+        admission_no = data.get('admission_no')
 
-#     class Meta:
-#         model = User
-#         fields = ['id', 'name', 'username', 'phone', 'gender', 'date_of_birth', 'student']
+        if User.objects.filter(username=username).exists():
+            raise serializers.ValidationError({"username": f"The username '{username}' is already taken."})
         
-    # def update(self, instance, validated_data):
-    #     # Update user related fields
-    #     instance.name = validated_data.get('name', instance.name)
-    #     instance.username = validated_data.get('username', instance.username)
-    #     instance.phone = validated_data.get('phone', instance.phone)
-    #     instance.gender = validated_data.get('gender', instance.gender)
-    #     instance.date_of_birth = validated_data.get('date_of_birth', instance.date_of_birth)
-        
-    #     student_data = validated_data.pop('student', None)
-    #     if student_data:
-    #         # Update student related fields
-    #         instance.student.admission_no = student_data.get('admission_no', instance.student.admission_no)
-    #         instance.student.guardian_name = student_data.get('guardian_name', instance.student.guardian_name)
-    #         instance.student.save()
-            
-    #         # # Update address field
-    #         # pincode = student_data.get('pincode', instance.student.pincode)
-    #         # house_name = student_data.get('house_name', instance.student.house_name)
-    #         # post_office = student_data.get('post_office', instance.student.post_office)
-    #         # place = student_data.get('place', instance.student.place)
-            
-    #         # address_parts = [part for part in [house_name, post_office, pincode, place] if part]
-    #         # instance.address = ", ".join(address_parts)
+        if Student.objects.filter(admission_no=admission_no).exists():
+            raise serializers.ValidationError({"username": f"The username '{username}' is already taken."})
 
-    #     instance.save()
-    #     return instance
+        return data
 
-# class ClassRoomStudentsListSerializer(serializers.ModelSerializer):
-#     user = UserStudentSerializer()
+
+# class StudentChoiceSerializer(serializers.ModelSerializer):
+#     # pincode = serializers.CharField(max_length=10, required=True)
+#     # house_name = serializers.CharField(max_length=150, required=True)
+#     # post_office = serializers.CharField(max_length=150, required=True)
+#     # place = serializers.CharField(max_length=100, required=True)
     
 #     class Meta:
 #         model = Student
-#         fields = ['id', 'admission_no', 'guardian_name', 'address','user']
-        
+#         fields = ['id', 'admission_no', 'guardian_name', 'address','classRoom']
+#         # , 'pincode', 'house_name', 'post_office','place']
+
+    
+    
+  
         
 class ClassRoomTeacherChoiceSerializer(serializers.ModelSerializer):
     teacher = serializers.SerializerMethodField()

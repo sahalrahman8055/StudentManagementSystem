@@ -66,46 +66,11 @@ class TeacherViewSet(viewsets.ModelViewSet):
 
 
     
+class StudentViewSet(viewsets.ModelViewSet):
+    queryset = Student.objects.all()
+    permission_classes = [IsAdminUser]
+    serializer_class = StudentSerializer
 
-
-            
-#             pen_no = teacher_instance.pen_no
-#             username = user_instance.username
-#             user_instance.set_password(pen_no)
-#             user_instance.save()
-
-#             send_teacher_email(user_instance, username, pen_no)
-
-        
-        
-# class TeacherGetUpdateViewset(viewsets.ModelViewSet):
-#     queryset = User.objects.all()
-#     serializer_class = TeacherGetUpdateSerializer
-#     permission_classes = [IsAuthenticated]
-    
-    
-#     def retrieve(self, request, *args, **kwargs):
-#         try:
-#             teacher_id = kwargs.get('pk')
-#             teacher = User.objects.get(id=teacher_id , role__name__icontains='teacher')
-#             serializer = self.get_serializer(teacher)
-#             return Response(serializer.data,status=status.HTTP_200_OK)
-#         except User.DoesNotExist:
-#             return Response({"error":"Teacher not found"},status=status.HTTP_404_NOT_FOUND)
-        
-        
-#     def update(self, request, *args, **kwargs):
-#         try:
-#             instance = self.get_object()
-#             print(instance)
-#             serializer = self.get_serializer(instance, data=request.data, partial=True)
-#             serializer.is_valid(raise_exception=True)
-#             self.perform_update(serializer)
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#         except Exception as e:
-#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        
-        
     
 
 class StudentListCreateAPIView(APIView):

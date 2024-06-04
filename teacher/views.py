@@ -51,18 +51,18 @@ class TeacherLoginAPIView(APIView):
           
           
 class TeacherClassStudentsAPIView(APIView):
-    # @swagger_auto_schema(
-    #     tags=["TEACHER View"],
-    #     operation_description="Get all classrooms students for the logged-in teacher",
-    #     responses={
-    #         200: openapi.Response(
-    #             description="List of classrooms",
-    #             schema=ClassRoomGetSerializer(many=True)
-    #         ),
-    #         404: "Teacher not found",
-    #         # 500: "Internal Server Error"
-    #     },
-    # )
+    @swagger_auto_schema(
+        tags=["TEACHER View"],
+        operation_description="Get all classrooms students for the logged-in teacher",
+        responses={
+            200: openapi.Response(
+                description="List of classrooms",
+                schema=ClassRoomGetSerializer(many=True)
+            ),
+            404: "Teacher not found",
+            # 500: "Internal Server Error"
+        },
+    )
     
     def get(self, request):
         user = request.user
@@ -70,14 +70,20 @@ class TeacherClassStudentsAPIView(APIView):
             teacher = Teacher.objects.get(user=user)
         except Teacher.DoesNotExist:
             return Response({"error": "Teacher not found."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.error(f"Unexpected error occurred while retrieving teacher: {e}")
+            return Response({"error": "Internal Server Error."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        class_rooms = ClassRoom.objects.filter(
-            classroom_teachers__teacher=teacher, 
-            classroom_teachers__is_class_teacher=True
-        )
-        
-        serializer = ClassRoomGetSerializer(class_rooms, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        try:
+            class_rooms = ClassRoom.objects.filter(
+                classroom_teachers__teacher=teacher, 
+                classroom_teachers__is_class_teacher=True
+            )
+            serializer = ClassRoomGetSerializer(class_rooms, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Unexpected error occurred while retrieving classrooms: {e}")
+            return Response({"error": "Internal Server Error."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
       
       
       
@@ -96,23 +102,33 @@ class TeacherBusStudentsAPIView(APIView):
         },
     )
     
-    def get(self,request):
+    def get(self, request):
         user = request.user
-        
+
         try:
             teacher = Teacher.objects.get(user=user)
-        except:
+        except Teacher.DoesNotExist:
             return Response({"error": "Teacher not found."}, status=status.HTTP_404_NOT_FOUND)
-          
-        classrooms = ClassRoom.objects.filter(classroom_teachers__teacher=teacher, classroom_teachers__is_class_teacher=True)
+        except Exception as e:
+            logger.error(f"Unexpected error occurred while retrieving teacher: {e}")
+            return Response({"error": "Internal Server Error."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        if not classrooms.exists():
-            return Response({"error": "No class assigned to this teacher."}, status=status.HTTP_404_NOT_FOUND)
-        
-        students = Student.objects.filter(classRoom__in=classrooms, is_bus=True)
+        try:
+            classrooms = ClassRoom.objects.filter(
+                classroom_teachers__teacher=teacher, 
+                classroom_teachers__is_class_teacher=True
+            )
 
-        serializer = StudentSerializer(students, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            if not classrooms.exists():
+                return Response({"error": "No class assigned to this teacher."}, status=status.HTTP_404_NOT_FOUND)
+
+            students = Student.objects.filter(classRoom__in=classrooms, is_bus=True)
+
+            serializer = StudentSerializer(students, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Unexpected error occurred while retrieving students: {e}")
+            return Response({"error": "Internal Server Error."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class StudentBusServiceAPIView(APIView):
