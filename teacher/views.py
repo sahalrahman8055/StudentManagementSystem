@@ -101,7 +101,7 @@ class TeacherBusStudentsAPIView(APIView):
     )
     
     def get(self, request):
-        user = request.user
+        user = request.user.teacher
 
         try:
             teacher = Teacher.objects.get(user=user)
