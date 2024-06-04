@@ -63,7 +63,10 @@ class TeacherClassStudentsAPIView(APIView):
     )
     
     def get(self, request):
-        user = request.user.id
+        if not request.user.is_authenticated:
+            return Response({'message': 'You need to be logged in to perform this action.'}, status=status.HTTP_401_UNAUTHORIZED)
+        user = request.user
+        
         try:
             teacher = Teacher.objects.get(user=user)
         except Teacher.DoesNotExist:
@@ -101,7 +104,7 @@ class TeacherBusStudentsAPIView(APIView):
     )
     
     def get(self, request):
-        user = request.user.id
+        user = request.user
 
         try:
             teacher = Teacher.objects.get(user=user)
