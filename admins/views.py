@@ -26,25 +26,28 @@ from student.models import Student
 from django.core.mail import send_mail
 from django.conf import settings
 from .utilities.utils import send_teacher_email
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated ,AllowAny
 from admins.utilities.permission import IsAdminUser
 from rest_framework.generics import CreateAPIView
 
 class AdminLoginAPIView(APIView):
+    permission_classes = [AllowAny,]
+    
     def post(self, request):
-      serializer = AdminLoginSerializer(data=request.data)
-      if serializer.is_valid():
-          username = serializer.validated_data['username']
-          password = serializer.validated_data['password']
-          user = authenticate( username=username, password=password)
+        print(request.data)
+        serializer = AdminLoginSerializer(data=request.data)
+        if serializer.is_valid():
+            username = serializer.validated_data['username']
+            password = serializer.validated_data['password']
+            user = authenticate( username=username, password=password)
 
-          if user is not None:
-            login(request, user)
-            token = get_tokens_for_user(user)
-            return Response({'message': 'Login successful', 'token':token}, status=status.HTTP_200_OK)
-          return Response({'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-      else:
-          return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            if user is not None:
+                login(request, user)
+                token = get_tokens_for_user(user)
+                return Response({'message': 'Login successful', 'token':token}, status=status.HTTP_200_OK)
+            return Response({'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
 
 class TeacherViewSet(viewsets.ModelViewSet):
@@ -68,43 +71,55 @@ class TeacherViewSet(viewsets.ModelViewSet):
     
 class StudentViewSet(viewsets.ModelViewSet):
     queryset = Student.objects.all()
-    permission_classes = [IsAdminUser]
+    permission_classes = [AllowAny]
     serializer_class = StudentSerializer
+    
+    def perform_create(self, serializer):
+        classroom_id = self.request.query_params.get('classroom_id')
+        if not classroom_id:
+            raise serializer.ValidationError({"classroom_id": "This query parameter is required."})
+
+        try:
+            classroom = ClassRoom.objects.get(id=classroom_id)
+        except ClassRoom.DoesNotExist:
+            raise serializer.ValidationError({"classroom_id": "Invalid classroom ID."})
+
+        serializer.save(classRoom=classroom)
 
     
 
-class StudentListCreateAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+# class StudentListCreateAPIView(APIView):
+#     permission_classes = [IsAuthenticated]
     
-    def get(self,request):
-        student = User.objects.filter(role__name__icontains='student')
-        serializer = StudentListSerializer(student, many=True)
-        return Response(serializer.data,status=status.HTTP_200_OK)
+#     def get(self,request):
+#         student = User.objects.filter(role__name__icontains='student')
+#         serializer = StudentListSerializer(student, many=True)
+#         return Response(serializer.data,status=status.HTTP_200_OK)
     
-    def post(self,request):
-        user_serializer = UserStudentSerializer(data=request.data)
-        student_serializer = StudentSerializer(data=request.data)
-        if user_serializer.is_valid(raise_exception=True) and (
-            student_serializer.is_valid(raise_exception=True)
-        ):
-            user_instance = user_serializer.save()
+#     def post(self,request):
+#         user_serializer = UserStudentSerializer(data=request.data)
+#         student_serializer = StudentSerializer(data=request.data)
+#         if user_serializer.is_valid(raise_exception=True) and (
+#             student_serializer.is_valid(raise_exception=True)
+#         ):
+#             user_instance = user_serializer.save()
             
-            classroom_id = request.GET.get('q')
-            try:
-                classroom = ClassRoom.objects.get(id=classroom_id)
-            except ClassRoom.DoesNotExist:
-                return Response({"msg":"classroom does not exist"}, status=status.HTTP_404_NOT_FOUND)
+#             classroom_id = request.GET.get('q')
+#             try:
+#                 classroom = ClassRoom.objects.get(id=classroom_id)
+#             except ClassRoom.DoesNotExist:
+#                 return Response({"msg":"classroom does not exist"}, status=status.HTTP_404_NOT_FOUND)
             
-            student_serializer.save(user=user_instance, classRoom=classroom)
+#             student_serializer.save(user=user_instance, classRoom=classroom)
             
-            return Response(
-                {"message": "Student created successfully"}, 
-                status=status.HTTP_201_CREATED
-            )
-        return Response(
-            {"message": "Error creating teacher"}, 
-            status=status.HTTP_400_BAD_REQUEST
-        )
+#             return Response(
+#                 {"message": "Student created successfully"}, 
+#                 status=status.HTTP_201_CREATED
+#             )
+#         return Response(
+#             {"message": "Error creating teacher"}, 
+#             status=status.HTTP_400_BAD_REQUEST
+#         )
             
             
 # class StudentGetUpdateViewset(viewsets.ModelViewSet):

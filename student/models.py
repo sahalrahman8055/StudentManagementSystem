@@ -10,7 +10,7 @@ class Student(models.Model):
     guardian_name = models.CharField(max_length=150)
     address = models.TextField(max_length=250,blank=True,null=True)
     classRoom = models.ForeignKey(ClassRoom, on_delete=models.CASCADE, blank=True,null=True, related_name='students')
-    is_bus = models.BooleanField(default=False) 
+    is_bus = models.BooleanField(default=False)
     
     def __str__(self) -> str:
         return self.user.name

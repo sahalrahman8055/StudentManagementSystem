@@ -1,5 +1,10 @@
-from django.urls import path
-from teacher.views import TeacherLoginAPIView , TeacherClassStudentsAPIView , TeacherBusStudentsAPIView , StudentBusServiceAPIView
+from django.urls import path , include
+from teacher.views import TeacherLoginAPIView , TeacherClassStudentsAPIView , TeacherBusStudentsAPIView , StudentBusServiceAPIView , StudentViewset
+from rest_framework.routers import DefaultRouter
+
+router = DefaultRouter()
+router.register(r'stud', StudentViewset )
+
 
 urlpatterns = [
     path('login/',
@@ -18,5 +23,6 @@ urlpatterns = [
          StudentBusServiceAPIView.as_view(),
          name='class-bus-students'
     ),
+    path('',include(router.urls))
     
 ]

@@ -7,20 +7,26 @@ from django.contrib.auth import authenticate, login
 from rest_framework.authtoken.models import Token
 from admins.utilities.token import get_tokens_for_user
 # from admins.models import User 
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated , AllowAny
 import logging
 from .models import Teacher, ClassRoomTeacher , ClassRoom
-from .serializers import ClassRoomGetSerializer ,StudentSerializer , StudentBusServiceSerializer
+from .serializers import ClassRoomGetSerializer ,StudentSerializer , StudentBusServiceSerializer , StudSerializer
 from student.models import Student , StudentBusService
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from admins.utilities.permission import isTeacher
+from rest_framework.decorators import action
+
+
+
 
 logger = logging.getLogger(__name__)
 
 class TeacherLoginAPIView(APIView):
+    # permission_classes = [AllowAny]
 
     def post(self, request):
-        logger.info('Processing login request...')
+        print("222222222")
         serializer = TeacherLoginSerializer(data=request.data)
 
         try:
@@ -28,6 +34,7 @@ class TeacherLoginAPIView(APIView):
                 username = serializer.validated_data['username']
                 password = serializer.validated_data['password']
 
+                print(username,password)
                 user = authenticate(username=username, password=password)
                 if user is not None:
                     login(request, user)
@@ -227,4 +234,40 @@ class StudentBusServiceAPIView(APIView):
         except ValueError:
             return Response({"error": "Invalid payment amount."}, status=status.HTTP_400_BAD_REQUEST)
           
-        
+
+
+
+class StudentViewset(viewsets.ModelViewSet):
+    queryset = Student.objects.all()
+    serializer_class = StudSerializer
+    permission_classes = [isTeacher]
+    
+    def get_classroom(self,user):
+         classroom = ClassRoomTeacher.objects.get(
+                    teacher__user=user,
+                    is_class_teacher=True
+                )
+         return classroom.classroom
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        if not request.user.is_superuser and request.user.is_staff:
+            classroom = self.get_classroom(request.user)
+            queryset = queryset.filter(classRoom=classroom)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+            
+            
+    @action(detail=False, methods=['GET'])
+    def get_bus_students(self, request):
+        queryset = self.get_queryset()
+        if not request.user.is_superuser and request.user.is_staff:
+            classroom = self.get_classroom(request.user)
+            queryset = queryset.filter(is_bus=True, classRoom=classroom)
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+        return Response("yoyoyooyo")
+    
+
+class BusStudentsViewset(viewsets.ModelViewSet):
+    pass

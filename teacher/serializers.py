@@ -50,4 +50,14 @@ class StudentBusServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentBusService
         fields = ['student', 'bus', 'route', 'bus_point', 'annual_fees']
+
+
+
+class StudSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Student
+        fields = '__all__'
+        read_only_fields = ('admission_no',)
+        
         

@@ -5,17 +5,18 @@ from admins.views import (
      TeacherViewSet,
     #  ClassRoomViewset , 
     #  TeacherListCreateAPIView , 
-     StudentListCreateAPIView ,
+    #  StudentListCreateAPIView ,
     #  TeacherGetUpdateViewset,
     #  StudentGetUpdateViewset,
-     ClassTeacherViewset
+     ClassTeacherViewset,
+     StudentViewSet
 )
 
 router = DefaultRouter()
 router.register(r'teachers', TeacherViewSet , basename='teacher')
 # router.register(r'classroom', ClassRoomViewset)
 # router.register(r'teacher', TeacherGetUpdateViewset,basename='teacher')
-# router.register(r'student', StudentGetUpdateViewset,basename='student')
+router.register(r'student', StudentViewSet,basename='student')
 router.register(r'classteacher', ClassTeacherViewset,basename='classTeacher')
 
 
@@ -31,9 +32,9 @@ urlpatterns = [
     #      TeacherListCreateAPIView.as_view(),
     #      name='teacher'
     # ),
-    path(
-        'register/student/', 
-        StudentListCreateAPIView.as_view(),
-        name='students'
-    ),
+    # path(
+    #     'register/student/', 
+    #     StudentListCreateAPIView.as_view(),
+    #     name='students'
+    # ),
 ]

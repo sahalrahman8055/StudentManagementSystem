@@ -99,49 +99,58 @@ class UserStudentSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'email': {'write_only': True, 'required': False}  # Exclude email from validation and creation
         }
+    
         
-
-
 class StudentSerializer(serializers.ModelSerializer):
-    pincode = serializers.CharField(max_length=10, required=True)
-    house_name = serializers.CharField(max_length=150, required=True)
-    post_office = serializers.CharField(max_length=150, required=True)
-    place = serializers.CharField(max_length=100,required=True)
+    pincode = serializers.CharField(max_length=10, write_only=True)
+    house_name = serializers.CharField(max_length=150, write_only=True)
+    post_office = serializers.CharField(max_length=150, write_only=True)
+    place = serializers.CharField(max_length=100, write_only=True)
     user = UserStudentSerializer()
 
     class Meta:
         model = Student
-        fields = ['id', 'admission_no', 'guardian_name', 'address', 'pincode', 'house_name', 'post_office','place','classRoom','user']
-        
+        fields = [
+            'id', 'admission_no', 'guardian_name', 'address', 
+            'pincode', 'house_name', 'post_office', 'place', 
+            'classRoom', 'user'
+        ]
+    
     def create(self, validated_data):
+        
+        """
+        Create a new Student instance with the given validated data.
+        """
         user_data = validated_data.pop('user')
-        
         user = User.objects.create_user(**user_data)
-
-        pincode = validated_data.pop('pincode', None)
-        house_name = validated_data.pop('house_name', None)
-        post_office = validated_data.pop('post_office', None)
-        place = validated_data.pop('place', None)
         
-        address = ""
-        if house_name:
-            address += f" {house_name}"
-        if post_office:
-            address += f", {post_office}"
-        if pincode:
-            address += f",  {pincode}"
-        if place:
-            address += f", {place}"
+        address = self.construct_address(
+            validated_data.pop('house_name', None),
+            validated_data.pop('post_office', None),
+            validated_data.pop('pincode', None),
+            validated_data.pop('place', None)
+        )
         
-        student = Student.objects.create(user=user , address=address, **validated_data)
+        student = Student.objects.create(user=user, address=address, **validated_data)
         
         student_group = Group.objects.get(name='student')
         user.groups.add(student_group)
         
         return student
     
+    def construct_address(self, house_name: str, post_office: str, pincode: str, place: str) -> str:
+        """
+        Construct the address from individual components.
+        """
+        address_parts = filter(None, [house_name, post_office, pincode, place])
+        return ", ".join(address_parts)
+    
+    
+    
     def validate(self, data):
-
+        """
+        Validate the incoming data.
+        """
         user_data = data.get('user')
         username = user_data.get('username')
         admission_no = data.get('admission_no')
@@ -150,7 +159,7 @@ class StudentSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"username": f"The username '{username}' is already taken."})
         
         if Student.objects.filter(admission_no=admission_no).exists():
-            raise serializers.ValidationError({"username": f"The username '{username}' is already taken."})
+            raise serializers.ValidationError({"admission_no": f"The admission number '{admission_no}' is already taken."})
 
         return data
 
