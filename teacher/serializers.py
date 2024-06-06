@@ -34,22 +34,22 @@ class TeacherLoginSerializer(serializers.Serializer):
 #         model = Student
 #         fields = ['id', 'user', 'admission_no', 'guardian_name', 'address', 'classRoom', 'is_bus', 'bus_service']
         
-
-
-# class StudentBusServiceSerializer(serializers.ModelSerializer):
-#     student = StudentSerializer()
-#     bus = BusSerializer()
-#     route = RouteSerializer()
-#     bus_point = BusPointSerializer()
-
-#     class Meta:
-#         model = StudentBusService
-#         fields = ['student', 'bus', 'route', 'bus_point', 'annual_fees']
-
 class UserStudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'name','gender']
+
+
+class BusStudentSerializer(serializers.ModelSerializer):
+    student = UserStudentSerializer()
+    bus = BusSerializer()
+    route = RouteSerializer()
+    bus_point = BusPointSerializer()
+
+    class Meta:
+        model = StudentBusService
+        fields = ['student', 'bus', 'route', 'bus_point', 'annual_fees']
+
 
 class StudentSerializer(serializers.ModelSerializer):
     user = UserStudentSerializer()

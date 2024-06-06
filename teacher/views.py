@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework import viewsets
-from teacher.serializers import TeacherLoginSerializer
+from teacher.serializers import TeacherLoginSerializer , BusStudentSerializer , StudentSerializer
 from rest_framework.views import APIView 
 from django.contrib.auth import authenticate, login
 from rest_framework.authtoken.models import Token
@@ -10,7 +10,6 @@ from admins.utilities.token import get_tokens_for_user
 from rest_framework.permissions import IsAuthenticated , AllowAny
 import logging
 from .models import Teacher, ClassRoomTeacher , ClassRoom
-from .serializers import  StudentSerializer
 from student.models import Student , StudentBusService
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -242,12 +241,15 @@ class StudentViewset(viewsets.ModelViewSet):
     serializer_class = StudentSerializer
     permission_classes = [isTeacher]
     
-    def get_classroom(self,user):
-         classroom = ClassRoomTeacher.objects.get(
-                    teacher__user=user,
-                    is_class_teacher=True
-                )
-         return classroom.classroom
+    def get_classroom(self, user):
+        try:
+            classroom_teacher = ClassRoomTeacher.objects.get(
+                teacher__user=user,
+                is_class_teacher=True
+            )
+            return classroom_teacher.classroom
+        except ClassRoomTeacher.DoesNotExist:
+            return None
     
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -270,4 +272,16 @@ class StudentViewset(viewsets.ModelViewSet):
     
 
 class BusStudentsViewset(viewsets.ModelViewSet):
-    pass
+    queryset = Student.objects.all()
+    serializer_class = BusStudentSerializer
+    permission_classes = [isTeacher]
+    
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        try:
+            student = StudentBusService.objects.get(id=instance.id)
+        except Student.DoesNotExist:
+            return None
+        
+        serializer = self.get_serializer(student)
+        return Response(serializer.data,status=status.HTTP_200_OK)

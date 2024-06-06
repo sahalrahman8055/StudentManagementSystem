@@ -1,10 +1,11 @@
 from django.urls import path , include
-from teacher.views import TeacherLoginAPIView ,  StudentViewset
+from teacher.views import TeacherLoginAPIView ,  StudentViewset , BusStudentsViewset
 # TeacherClassStudentsAPIView , TeacherBusStudentsAPIView , StudentBusServiceAPIView ,
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
-router.register(r'stud', StudentViewset )
+router.register(r'students', StudentViewset, basename="classStudents" )
+router.register(r'busStudent', BusStudentsViewset, basename="yoy" )
 
 
 urlpatterns = [

@@ -15,8 +15,6 @@ class IsAdminUser(BasePermission):
 class isTeacher(BasePermission):
     
     def has_permission(self, request, view):
-        print("555555555")
-        # if hasattr(request.user, 'Teacher'):
         try:
             if request.user.teacher:
                 return True
