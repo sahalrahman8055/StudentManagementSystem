@@ -9,6 +9,7 @@ from admins.utilities.token import get_tokens_for_user
 # from admins.models import User 
 from rest_framework.permissions import IsAuthenticated , AllowAny
 import logging
+from admins.models import User
 from .models import Teacher, ClassRoomTeacher , ClassRoom
 from student.models import Student , StudentBusService
 from drf_yasg.utils import swagger_auto_schema
@@ -276,12 +277,23 @@ class BusStudentsViewset(viewsets.ModelViewSet):
     serializer_class = BusStudentSerializer
     permission_classes = [isTeacher]
     
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
+    def get_student_bus_details(self, user_id):
         try:
-            student = StudentBusService.objects.get(id=instance.id)
-        except Student.DoesNotExist:
+            bus_service = StudentBusService.objects.select_related('student__user').get(student__user__id=user_id)
+            return bus_service
+        except StudentBusService.DoesNotExist:
             return None
+    
+    def retrieve(self, request, *args, **kwargs):
+        user_id = kwargs.get('pk')
+        bus_service = self.get_student_bus_details(user_id)  
+        serializer = self.get_serializer(bus_service)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def update(self, request, *args, **kwargs):
+        user_id = self.get_object('pk')
+        bus_service = self.get_student_bus_details(user_id)
         
-        serializer = self.get_serializer(student)
+        serializer = self.get_serializer(bus_service,data=request.data)
+        serializer.is_valid(raise_exception=True)
         return Response(serializer.data,status=status.HTTP_200_OK)
