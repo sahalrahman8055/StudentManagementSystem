@@ -15,33 +15,80 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='ClassRoom',
+            name="ClassRoom",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=150, unique=True)),
-                ('capacity', models.PositiveIntegerField()),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=150, unique=True)),
+                ("capacity", models.PositiveIntegerField()),
             ],
         ),
         migrations.CreateModel(
-            name='Teacher',
+            name="Teacher",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('pen_no', models.CharField(max_length=15, unique=True)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("pen_no", models.CharField(max_length=15, unique=True)),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='ClassRoomTeacher',
+            name="ClassRoomTeacher",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('is_class_teacher', models.BooleanField(default=False)),
-                ('classroom', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='classroom_teachers', to='teacher.classroom')),
-                ('teacher', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='teacher.teacher')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("is_class_teacher", models.BooleanField(default=False)),
+                (
+                    "classroom",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="classroom_teachers",
+                        to="teacher.classroom",
+                    ),
+                ),
+                (
+                    "teacher",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="teacher.teacher",
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='classroom',
-            name='teachers',
-            field=models.ManyToManyField(related_name='classTeacher', through='teacher.ClassRoomTeacher', to='teacher.teacher'),
+            model_name="classroom",
+            name="teachers",
+            field=models.ManyToManyField(
+                related_name="classTeacher",
+                through="teacher.ClassRoomTeacher",
+                to="teacher.teacher",
+            ),
         ),
     ]

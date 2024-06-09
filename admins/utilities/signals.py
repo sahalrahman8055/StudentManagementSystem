@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from teacher.models import Teacher
 from django.conf import settings
 
+
 @receiver(post_save, sender=Teacher)
 def send_teacher(sender, instance, created, **kwargs):
     if created:
@@ -12,9 +13,9 @@ def send_teacher(sender, instance, created, **kwargs):
             instance.user.set_password(instance.pen_no)
             instance.user.save()
 
-            subject = 'Your Teacher Account Credentials'
-            message = f'Username: {instance.user.username}\nPassword: {instance.pen_no}'
-            from_email =  settings.EMAIL_HOST_USER 
+            subject = "Your Teacher Account Credentials"
+            message = f"Username: {instance.user.username}\nPassword: {instance.pen_no}"
+            from_email = settings.EMAIL_HOST_USER
             to_email = instance.user.email
             send_mail(subject, message, from_email, [to_email])
         except Exception as e:

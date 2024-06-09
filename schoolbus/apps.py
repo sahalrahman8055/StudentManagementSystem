@@ -2,5 +2,5 @@ from django.apps import AppConfig
 
 
 class SchoolbusConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'schoolbus'
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "schoolbus"
