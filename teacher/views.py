@@ -115,15 +115,25 @@ class PaymentViewset(viewsets.ModelViewSet):
     serializer_class = PaymentSerializer
     permission_classes=[IsAuthenticated]
     
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data,status=status.HTTP_200_OK)
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        serializer.save()
+        headers = self.get_success_headers(serializer.data)
+        return Response({"message": "Payment done successfully","data":serializer.data}, status=status.HTTP_201_CREATED, headers=headers)
     
-    @action(detail=False, methods=["GET"])
-    def transactions(self, request, student_id):
-        payments = Payment.objects.filter(bus_service__student__user__id=student_id)
-        if not payments.exists():
-            return Response({"message": "No transactions found for this student"}, status=status.HTTP_404_NOT_FOUND)
+    # def retrieve(self, request, *args, **kwargs):
+    #     instance = self.get_object()
+    #     print(instance,'55555')
+    #     serializer = self.get_serializer(instance)
+    #     return Response(serializer.data,status=status.HTTP_200_OK)
+    
+    # @action(detail=False, methods=["GET"])
+    def get_user_payments(self, request, user_id):
+        payments = Payment.objects.filter(student__user__id=user_id)
+        
         serializer = self.get_serializer(payments, many=True)
-        return Response(serializer.data,status=status.HTTP_200_OK)
+        
+        return Response(serializer.data, status=status.HTTP_200_OK)
+

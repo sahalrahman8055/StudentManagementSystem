@@ -6,6 +6,7 @@ from student.models import Student, StudentBusService
 from teacher.models import ClassRoom, Teacher
 from student.models import Payment
 from decimal import Decimal
+from django.db.models import Sum
 
 class TeacherLoginSerializer(serializers.Serializer):
     username = serializers.CharField()
@@ -69,16 +70,15 @@ class BusStudentSerializer(serializers.ModelSerializer):
 
 
 class PaymentSerializer(serializers.ModelSerializer):
-    bus_service = serializers.PrimaryKeyRelatedField(queryset=StudentBusService.objects.all())
+    student = serializers.PrimaryKeyRelatedField(queryset=Student.objects.all())
     amount = serializers.DecimalField(max_digits=10, decimal_places=2)
     method = serializers.ChoiceField(choices=Payment.PAYMENT_METHOD)
     paid_amount = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     balance_amount = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
 
-
     class Meta:
         model = Payment
-        fields = ('id','bus_service', 'amount', 'method','paid_amount','balance_amount', 'created_at')
+        fields = ('id', 'student', 'amount', 'method', 'paid_amount', 'balance_amount', 'created_at')
 
     def validate_amount(self, value):
         if value <= 0:
@@ -86,29 +86,31 @@ class PaymentSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, data):
-        bus_service = data['bus_service']
-        if bus_service.annual_fees < data['amount']:
+        student = data['student']
+        bus_service = getattr(student, 'bus_service', None)
+        
+        if not bus_service:
+            raise serializers.ValidationError("Student does not have a bus service assigned.")
+        
+        total_paid = Payment.objects.filter(student=student).aggregate(total=Sum('amount'))['total'] or 0
+        annual_fees = bus_service.annual_fees  # Keep the annual fees constant
+        
+        if total_paid + data['amount'] > annual_fees:
             raise serializers.ValidationError("Payment amount exceeds the remaining total fees.")
+        
         return data
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        bus_service = instance.bus_service
-        amount_paid = instance.amount
-        print(amount_paid)
+        bus_service = instance.student.bus_service
 
-        transactions = Payment.objects.filter(
-            bus_service=bus_service,
-            created_at__lte=instance.created_at
-        )
-        print(transactions,'999999')
-        
-        # Calculate the total paid amount including the current transaction
-        total_paid = sum(transaction.amount for transaction in transactions)
-        balance_amount = bus_service.annual_fees 
+        # Calculate total paid amount including this instance
+        total_paid = Payment.objects.filter(student=instance.student).aggregate(total=Sum('amount'))['total'] or 0
+        annual_fees = bus_service.annual_fees  # Ensure this is correctly fetched
+        balance_amount = annual_fees - total_paid
 
-        representation['total_paid_amount'] = total_paid
+        # Set paid_amount and balance_amount in the representation
+        representation['paid_amount'] = total_paid
         representation['balance_amount'] = balance_amount
         
         return representation
-

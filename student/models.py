@@ -3,6 +3,7 @@ from admins.models import User
 from teacher.models import ClassRoom
 from schoolbus.models import Bus, Route, BusPoint
 from decimal import Decimal
+from django.db.models import Sum
 
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -42,30 +43,53 @@ class Payment(models.Model):
         ("UPI", "UPI"),
         ("CASH", "CASH"),
     ]
-    bus_service = models.ForeignKey(
-        StudentBusService, on_delete=models.CASCADE, related_name="payments"
+    student = models.ForeignKey(
+        Student, on_delete=models.CASCADE, related_name="payments"
     )
     method = models.CharField(blank=True,null=True, choices=PAYMENT_METHOD)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
+    paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    balance_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0) 
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f'Payment: {self.amount} (Method: {self.method})'
     
     def save(self, *args, **kwargs):
-        # If the instance already exists, revert the old amount
-        if self.pk:
-            old_instance = Payment.objects.get(pk=self.pk)
-            self.bus_service.annual_fees += Decimal(old_instance.amount)
-
-        self.bus_service.annual_fees -= Decimal(self.amount)
-        self.bus_service.save()
-        
+        # Calculate total paid amount including this instance
+        total_paid = self.student.payments.aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+        self.paid_amount = total_paid
+        # Update balance amount
+        self.balance_amount = self.student.bus_service.annual_fees - total_paid
         super().save(*args, **kwargs)
+    
+    # def save(self, *args, **kwargs):
+    #     super().save(*args, **kwargs)  # Save the payment first
 
-    def delete(self, *args, **kwargs):
-        # Revert the amount when the payment is deleted
-        self.bus_service.annual_fees += Decimal(self.amount)
-        self.bus_service.save()
-        super().delete(*args, **kwargs)
+    #     # Calculate total paid amount for the student
+    #     total_paid = self.student.payments.aggregate(total=Sum('amount'))['total'] or 0
+
+    #     # Calculate balance amount
+    #     annual_fees = self.student.bus_service.annual_fees
+    #     balance_amount = annual_fees - total_paid
+
+    #     # Update the representation of this payment instance
+    #     self.paid_amount = total_paid
+    #     self.balance_amount = balance_amount
+    #     self.save(update_fields=['paid_amount', 'balance_amount'])  # Save the updated fields
+
+    # def delete(self, *args, **kwargs):
+    #     # Calculate total paid amount for the student
+    #     total_paid = self.student.payments.aggregate(total=Sum('amount'))['total'] or 0
+
+    #     # Calculate balance amount
+    #     annual_fees = self.student.bus_service.annual_fees
+    #     balance_amount = annual_fees - total_paid
+
+    #     # Update the representation of this payment instance
+    #     self.paid_amount = total_paid
+    #     self.balance_amount = balance_amount
+    #     self.save(update_fields=['paid_amount', 'balance_amount'])  # Save the updated fields
+
+    #     super().delete(*args, **kwargs)
     

@@ -9,8 +9,9 @@ router.register(r"busStudent", BusStudentsViewset, basename="busservice_student"
 router.register(r"payment", PaymentViewset, basename="payment")
 
 
+
 urlpatterns = [
     path("login/", TeacherLoginAPIView.as_view(), name="teacher-login"),
-    path('payment/transactions/<int:student_id>/', PaymentViewset.as_view({'get': 'transactions'}), name='student_transactions'),
+    path('payment/get_user_payments/<int:user_id>/', PaymentViewset.as_view({'get': 'get_user_payments'}), name='get-user-payments'),
     path("", include(router.urls)),
 ]

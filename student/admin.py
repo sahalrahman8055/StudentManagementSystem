@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Student, StudentBusService
+from .models import Student, StudentBusService , Payment
 
 
 @admin.register(StudentBusService)
@@ -18,3 +18,8 @@ class BusAdmin(admin.ModelAdmin):
         "admission_no",
         "classRoom",
     )
+
+
+@admin.register(Payment)
+class ClassROomAdmin(admin.ModelAdmin):
+    list_display = ("id", "amount", "method")
