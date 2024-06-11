@@ -123,7 +123,7 @@ class PaymentCreateAPIView(CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        return Response({"message": "Payment done successfully"},
+        return Response({"message": "Payment done successfully","data":serializer.data},
                         status=status.HTTP_201_CREATED
         )
     
@@ -136,8 +136,10 @@ class TransactionViewset(viewsets.ModelViewSet):
     def get_queryset(self):
         user_id = self.request.query_params.get('user_id')
         queryset = super().get_queryset()
+        print(queryset)
         if user_id:
             queryset = queryset.filter(student_id=user_id)
+            print(queryset,'44444')
         return queryset
 
     def list(self, request, *args, **kwargs):

@@ -22,4 +22,4 @@ class BusAdmin(admin.ModelAdmin):
 
 @admin.register(Payment)
 class ClassROomAdmin(admin.ModelAdmin):
-    list_display = ("id","student", "amount", "method")
+    list_display = ("id","student", "amount", "method",'paid_amount','balance_amount')
