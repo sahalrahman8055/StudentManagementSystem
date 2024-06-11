@@ -6,7 +6,8 @@ from teacher.serializers import (
     BusStudentSerializer,
     StudentSerializer,
     PaymentSerializer,
-    PaymentDetailSerializer
+    PaymentDetailSerializer,
+    TransactionSerializer
 )
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login
@@ -23,6 +24,7 @@ from admins.utilities.permission import isTeacher
 from rest_framework.decorators import action
 from student.models import Payment
 from rest_framework.generics import CreateAPIView
+from django.db.models import Sum
 
 logger = logging.getLogger(__name__)
 
@@ -127,11 +129,52 @@ class PaymentCreateAPIView(CreateAPIView):
     
 
 class TransactionViewset(viewsets.ModelViewSet):
-    queryset= Payment.objects.all()
+    queryset = Payment.objects.all()
     serializer_class = PaymentDetailSerializer
-    permission_classes=[IsAuthenticated]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user_id = self.request.query_params.get('user_id')
+        queryset = super().get_queryset()
+        if user_id:
+            queryset = queryset.filter(student_id=user_id)
+        return queryset
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        print(queryset)
+        user_id = request.query_params.get('user_id')
+        student = Student.objects.get(pk=user_id)  # Assuming Student model exists and imported
+        
+        payment = queryset.order_by('-created_at').first()
+        
+        if payment:
+            total_paid_amount = payment.paid_amount
+            total_balance_amount = payment.balance_amount
+        else:
+            total_paid_amount = 0
+            total_balance_amount = 0
+
+        bus_service_data = {
+            "annual_fees": student.bus_service.annual_fees
+        }
+        
+        # Serialize transactions
+        serializer = self.get_serializer(queryset, many=True)
+        
+        # Construct response data
+        response_data = {
+            "paid_amount": total_paid_amount,
+            "balance_amount": total_balance_amount,
+            "bus_service": bus_service_data,
+            "transactions": serializer.data
+        }
+        
+        return Response(response_data, status=status.HTTP_200_OK)
 
 
+
+    
     def get(self, request, pk=None):
         try:
             payment = Payment.objects.get(id=pk)
@@ -139,17 +182,4 @@ class TransactionViewset(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Payment.DoesNotExist:
             return Response({"message": "Payment not found"}, status=status.HTTP_404_NOT_FOUND) 
-        
-    
-    @action(detail=False, methods=["GET"])
-    def get_transactions(self, request, user_id=None):
-        user_id = request.query_params.get('user_id')
-        payments = Payment.objects.filter(student__id=user_id)
-        print(payments)
-        if not payments.exists():
-            return Response({"message": "No payments found for this student"}, status=status.HTTP_404_NOT_FOUND)
-        serializer = self.get_serializer(payments, many=True)
-        print(serializer)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
         
