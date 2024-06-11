@@ -114,3 +114,15 @@ class PaymentSerializer(serializers.ModelSerializer):
         representation['balance_amount'] = balance_amount
         
         return representation
+
+class StudentBusServiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StudentBusService
+        fields = ['annual_fees']
+
+class PaymentDetailSerializer(serializers.ModelSerializer):
+    bus_service = StudentBusServiceSerializer(source='student.bus_service', read_only=True)
+
+    class Meta:
+        model = Payment
+        fields = ('id', 'student', 'bus_service', 'amount', 'method', 'paid_amount', 'balance_amount')

@@ -5,7 +5,8 @@ from teacher.serializers import (
     TeacherLoginSerializer,
     BusStudentSerializer,
     StudentSerializer,
-    PaymentSerializer
+    PaymentSerializer,
+    PaymentDetailSerializer
 )
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login
@@ -21,6 +22,7 @@ from drf_yasg import openapi
 from admins.utilities.permission import isTeacher
 from rest_framework.decorators import action
 from student.models import Payment
+from rest_framework.generics import CreateAPIView
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +112,7 @@ class BusStudentsViewset(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class PaymentViewset(viewsets.ModelViewSet):
+class PaymentCreateAPIView(CreateAPIView):
     queryset= Payment.objects.all()
     serializer_class = PaymentSerializer
     permission_classes=[IsAuthenticated]
@@ -119,21 +121,35 @@ class PaymentViewset(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        serializer.save()
-        headers = self.get_success_headers(serializer.data)
-        return Response({"message": "Payment done successfully","data":serializer.data}, status=status.HTTP_201_CREATED, headers=headers)
+        return Response({"message": "Payment done successfully"},
+                        status=status.HTTP_201_CREATED
+        )
     
-    # def retrieve(self, request, *args, **kwargs):
-    #     instance = self.get_object()
-    #     print(instance,'55555')
-    #     serializer = self.get_serializer(instance)
-    #     return Response(serializer.data,status=status.HTTP_200_OK)
-    
-    # @action(detail=False, methods=["GET"])
-    def get_user_payments(self, request, user_id):
-        payments = Payment.objects.filter(student__user__id=user_id)
-        
-        serializer = self.get_serializer(payments, many=True)
-        
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
+class TransactionViewset(viewsets.ModelViewSet):
+    queryset= Payment.objects.all()
+    serializer_class = PaymentDetailSerializer
+    permission_classes=[IsAuthenticated]
+
+
+    def get(self, request, pk=None):
+        try:
+            payment = Payment.objects.get(id=pk)
+            serializer = self.get_serializer(payment)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Payment.DoesNotExist:
+            return Response({"message": "Payment not found"}, status=status.HTTP_404_NOT_FOUND) 
+        
+    
+    @action(detail=False, methods=["GET"])
+    def get_transactions(self, request, user_id=None):
+        user_id = request.query_params.get('user_id')
+        payments = Payment.objects.filter(student__id=user_id)
+        print(payments)
+        if not payments.exists():
+            return Response({"message": "No payments found for this student"}, status=status.HTTP_404_NOT_FOUND)
+        serializer = self.get_serializer(payments, many=True)
+        print(serializer)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+        
