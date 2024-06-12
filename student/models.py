@@ -57,11 +57,20 @@ class Payment(models.Model):
     
     def save(self, *args, **kwargs):
         # Calculate total paid amount including this instance
-        total_paid = self.student.payments.aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+        total_paid = Payment.objects.filter(student=self.student).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+        total_paid += self.amount
         self.paid_amount = total_paid
         # Update balance amount
         self.balance_amount = self.student.bus_service.annual_fees - total_paid
         super().save(*args, **kwargs)
+    
+    # def save(self, *args, **kwargs):
+
+    #     total_paid = self.student.payments.aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+    #     self.paid_amount = total_paid
+    #     # Update balance amount
+    #     self.balance_amount = self.student.bus_service.annual_fees - total_paid
+    #     super().save(*args, **kwargs)
     
     # def save(self, *args, **kwargs):
     #     super().save(*args, **kwargs)  # Save the payment first

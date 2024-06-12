@@ -88,16 +88,16 @@ class PaymentSerializer(serializers.ModelSerializer):
     def validate(self, data):
         student = data['student']
         bus_service = getattr(student, 'bus_service', None)
-        
+
         if not bus_service:
             raise serializers.ValidationError("Student does not have a bus service assigned.")
-        
+
         total_paid = Payment.objects.filter(student=student).aggregate(total=Sum('amount'))['total'] or 0
         annual_fees = bus_service.annual_fees  # Keep the annual fees constant
-        
+
         if total_paid + data['amount'] > annual_fees:
             raise serializers.ValidationError("Payment amount exceeds the remaining total fees.")
-        
+
         return data
 
     def to_representation(self, instance):
@@ -112,8 +112,10 @@ class PaymentSerializer(serializers.ModelSerializer):
         # Set paid_amount and balance_amount in the representation
         representation['paid_amount'] = total_paid
         representation['balance_amount'] = balance_amount
-        
+
         return representation
+
+
     
     
 

@@ -115,17 +115,23 @@ class BusStudentsViewset(viewsets.ModelViewSet):
 
 
 class PaymentCreateAPIView(CreateAPIView):
-    queryset= Payment.objects.all()
+    queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
-    permission_classes=[IsAuthenticated]
-    
+    permission_classes = [IsAuthenticated]
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        return Response({"message": "Payment done successfully","data":serializer.data},
-                        status=status.HTTP_201_CREATED
+        payment = serializer.instance
+        return Response(
+            {
+                "message": "Payment done successfully",
+                "data": PaymentSerializer(payment).data
+            },
+            status=status.HTTP_201_CREATED
         )
+
     
 
 class TransactionViewset(viewsets.ModelViewSet):
@@ -136,18 +142,15 @@ class TransactionViewset(viewsets.ModelViewSet):
     def get_queryset(self):
         user_id = self.request.query_params.get('user_id')
         queryset = super().get_queryset()
-        print(queryset)
         if user_id:
             queryset = queryset.filter(student_id=user_id)
-            print(queryset,'44444')
         return queryset
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-        print(queryset)
         user_id = request.query_params.get('user_id')
-        student = Student.objects.get(pk=user_id)  # Assuming Student model exists and imported
         
+        # Get the latest payment entry for the student
         payment = queryset.order_by('-created_at').first()
         
         if payment:
@@ -156,15 +159,19 @@ class TransactionViewset(viewsets.ModelViewSet):
         else:
             total_paid_amount = 0
             total_balance_amount = 0
-
-        bus_service_data = {
-            "annual_fees": student.bus_service.annual_fees
-        }
         
-        # Serialize transactions
+        # Get bus service details for the student if available
+        try:
+            student = Student.objects.get(pk=user_id)  # Assuming Student model exists and imported
+            bus_service_data = {
+                "annual_fees": student.bus_service.annual_fees
+            }
+        except Student.DoesNotExist:
+            return Response({"detail": "Student does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        except Student.bus_service.RelatedObjectDoesNotExist:
+            return Response({"detail": "Student has no bus service"}, status=status.HTTP_400_BAD_REQUEST)
+        
         serializer = self.get_serializer(queryset, many=True)
-        
-        # Construct response data
         response_data = {
             "paid_amount": total_paid_amount,
             "balance_amount": total_balance_amount,
