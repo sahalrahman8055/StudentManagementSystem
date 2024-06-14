@@ -7,7 +7,7 @@ from teacher.serializers import (
     StudentSerializer,
     PaymentSerializer,
     PaymentDetailSerializer,
-    TransactionSerializer
+    TeacherProfileSerializer
 )
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login
@@ -58,6 +58,35 @@ class TeacherLoginAPIView(APIView):
                 {"message": "An internal server error occurred."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+
+class TeacherProfileViewset(viewsets.ModelViewSet):
+    queryset = Teacher.objects.all()
+    serializer_class = TeacherProfileSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        user = self.request.user
+        return Teacher.objects.filter(user=user)
+
+    def retrieve(self, request, *args, **kwargs):
+        teacher = self.get_queryset().first()
+        if teacher:
+            serializer = self.get_serializer(teacher)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    def update(self, request, *args, **kwargs):
+        teacher = self.get_queryset().first()
+        print(teacher)
+        if not teacher:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = self.get_serializer(teacher, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
 
 
 class StudentViewset(viewsets.ModelViewSet):
@@ -150,7 +179,6 @@ class TransactionViewset(viewsets.ModelViewSet):
         queryset = self.get_queryset()
         user_id = request.query_params.get('user_id')
         
-        # Get the latest payment entry for the student
         payment = queryset.order_by('-created_at').first()
         
         if payment:
@@ -160,9 +188,8 @@ class TransactionViewset(viewsets.ModelViewSet):
             total_paid_amount = 0
             total_balance_amount = 0
         
-        # Get bus service details for the student if available
         try:
-            student = Student.objects.get(pk=user_id)  # Assuming Student model exists and imported
+            student = Student.objects.get(pk=user_id) 
             bus_service_data = {
                 "annual_fees": student.bus_service.annual_fees
             }

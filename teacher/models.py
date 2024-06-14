@@ -1,11 +1,12 @@
 from django.db import models
 from admins.models import User
+from cloudinary.models import CloudinaryField
 
 
 class Teacher(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     pen_no = models.CharField(max_length=15, unique=True)
-
+    photo = CloudinaryField('image', null=True, blank=True)
     def __str__(self):
         return self.user.name
 

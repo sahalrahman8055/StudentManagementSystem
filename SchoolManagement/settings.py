@@ -10,6 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -199,3 +202,38 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_LIFETIME": timedelta(minutes=5),
     "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
 }
+
+
+STATIC_URL = '/static/'
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+STATIC_ROOT = '/app/static_root/'
+
+
+#media uploding folders
+
+
+MEDIA_ROOT = BASE_DIR /'uploads'
+
+
+MEDIA_URL = '/media/'
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+CLOUDINARY_ALLOWED_FORMATS = [
+    'jpg', 'jpeg', 'png', 'gif',  # Add other image formats as needed
+    'pdf', 'doc', 'docx',         # Add DOC and PDF formats
+]
+
+# settings.py
+
+
+cloudinary.config(
+    CLOUD_NAME = os.getenv('CLOUD_NAME'),
+    API_KEY = os.getenv('CLOUDINARY_API_KEY'),
+    API_SECRET = os.getenv('CLOUDINARY_API_SECRET'),
+)
+
+

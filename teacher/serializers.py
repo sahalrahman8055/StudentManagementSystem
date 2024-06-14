@@ -13,6 +13,32 @@ class TeacherLoginSerializer(serializers.Serializer):
     password = serializers.CharField()
 
 
+class UserSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = User
+        fields = ['id','name','gender']
+
+class TeacherProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+    class Meta:
+        model = Teacher
+        fields = ('id', 'user', 'pen_no', 'photo')
+
+    def update(self, instance, validated_data):
+        # Update nested user data
+        user_data = validated_data.pop('user', None)
+        if user_data:
+            user_serializer = UserSerializer(instance.user, data=user_data, partial=True)
+            user_serializer.is_valid(raise_exception=True)
+            user_serializer.save()
+
+        instance.pen_no = validated_data.get('pen_no', instance.pen_no)
+        instance.photo = validated_data.get('photo', instance.photo)
+        instance.save()
+        return instance
+
+
 class BusPointChoiceSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -114,36 +140,20 @@ class PaymentSerializer(serializers.ModelSerializer):
         representation['balance_amount'] = balance_amount
 
         return representation
-
-
     
-    
+    def update(self, instance, validated_data):
+        instance.amount = validated_data.get('amount', instance.amount)
+        instance.method = validated_data.get('method', instance.method)
+        instance.save()
 
-class TransactionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Payment
-        fields = ['id', 'amount', 'method', 'paid_amount', 'balance_amount']
+        total_paid = Payment.objects.filter(student=instance.student).aggregate(total=Sum('amount'))['total'] or 0
+        annual_fees = instance.student.bus_service.annual_fees
+        instance.paid_amount = total_paid
+        instance.balance_amount = annual_fees - total_paid
+        instance.save() 
 
+        return instance
 
-class StudentBusServiceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = StudentBusService
-        fields = ['annual_fees']
-
-
-# class PaymentDetailSerializer(serializers.ModelSerializer):
-#     bus_service = StudentBusServiceSerializer(source='student.bus_service', read_only=True)
-#     # transactions = serializers.SerializerMethodField()
-
-#     class Meta:
-#         model = Payment
-#         fields = ['paid_amount', 'balance_amount', 'bus_service']
-
-#     def get_transactions(self, obj):
-#         transactions_queryset = Payment.objects.filter(student=obj.student)
-#         serializer = TransactionSerializer(transactions_queryset, many=True)
-#         print(serializer)
-#         return serializer.data
 
 class PaymentDetailSerializer(serializers.ModelSerializer):
     class Meta:
