@@ -4,7 +4,7 @@ from rest_framework import viewsets
 from .serializers import (
     AdminLoginSerializer,
     TeacherSerializer,
-    #  ClassRoomSerializer,
+    ClassRoomSerializer,
     #  UserSerializer,
     StudentSerializer,
     #  UserStudentSerializer,
@@ -13,6 +13,8 @@ from .serializers import (
     #  StudentListSerializer,
     ClassTeacherSerializer,
     #  StudentGetUpdateSerializer,
+    FileUploadSerializer,
+    StudentUploadSerializer
 )
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login
@@ -29,6 +31,8 @@ from .utilities.utils import send_teacher_email
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from admins.utilities.permission import IsAdminUser
 from rest_framework.generics import CreateAPIView
+from rest_framework.decorators import action
+import openpyxl
 
 
 class AdminLoginAPIView(APIView):
@@ -98,44 +102,9 @@ class StudentViewSet(viewsets.ModelViewSet):
             raise serializer.ValidationError({"classroom_id": "Invalid classroom ID."})
 
         serializer.save(classRoom=classroom)
+        return Response("Student Created Successfully",status=status.HTTP_201_CREATED)
 
-    # class StudentListCreateAPIView(APIView):
-    #     permission_classes = [IsAuthenticated]
 
-    #     def get(self,request):
-    #         student = User.objects.filter(role__name__icontains='student')
-    #         serializer = StudentListSerializer(student, many=True)
-    #         return Response(serializer.data,status=status.HTTP_200_OK)
-
-    #     def post(self,request):
-    #         user_serializer = UserStudentSerializer(data=request.data)
-    #         student_serializer = StudentSerializer(data=request.data)
-    #         if user_serializer.is_valid(raise_exception=True) and (
-    #             student_serializer.is_valid(raise_exception=True)
-    #         ):
-    #             user_instance = user_serializer.save()
-
-    #             classroom_id = request.GET.get('q')
-    #             try:
-    #                 classroom = ClassRoom.objects.get(id=classroom_id)
-    #             except ClassRoom.DoesNotExist:
-    #                 return Response({"msg":"classroom does not exist"}, status=status.HTTP_404_NOT_FOUND)
-
-    #             student_serializer.save(user=user_instance, classRoom=classroom)
-
-    #             return Response(
-    #                 {"message": "Student created successfully"},
-    #                 status=status.HTTP_201_CREATED
-    #             )
-    #         return Response(
-    #             {"message": "Error creating teacher"},
-    #             status=status.HTTP_400_BAD_REQUEST
-    #         )
-
-    # class StudentGetUpdateViewset(viewsets.ModelViewSet):
-    #     queryset = User.objects.all()
-    #     serializer_class = StudentGetUpdateSerializer
-    #     permission_classes = [IsAuthenticated]
 
     def retrieve(self, request, *args, **kwargs):
         try:
@@ -159,10 +128,10 @@ class StudentViewSet(viewsets.ModelViewSet):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-# class ClassRoomViewset(viewsets.ModelViewSet):
-#     queryset = ClassRoom.objects.all()
-#     serializer_class = ClassRoomSerializer
-#     permission_classes = [IsAuthenticated]
+class ClassRoomViewset(viewsets.ModelViewSet):
+    queryset = ClassRoom.objects.all()
+    serializer_class = ClassRoomSerializer
+    permission_classes = [IsAuthenticated]
 
 
 class ClassTeacherViewset(viewsets.ModelViewSet):
@@ -213,3 +182,87 @@ class ClassTeacherViewset(viewsets.ModelViewSet):
                 {"msg": "Classroom ID not provided in the request"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+
+# class StudentsUploadViewset(viewsets.ModelViewSet):
+#     queryset = Student.objects.all()
+#     serializer_class = StudentSerializer
+    
+#     @action(detail=False, methods=['post'], url_path='upload')
+#     def upload(self, request):
+#         print("hiiiiiiiiii")
+#         file_serializer = FileUploadSerializer(data=request.data)
+#         if file_serializer.is_valid(raise_exception=True):
+#             file = request.FILES['file']
+#             print(file,'9999999999')
+#             try:
+#                 workbook = openpyxl.load_workbook(file)
+#                 print(workbook,'66666666')
+#                 sheet = workbook.active
+                
+#                 headers = [cell.value for cell in sheet[1]]
+#                 students_data = [dict(zip(headers, row)) for row in sheet.iter_rows(min_row=2, values_only=True)]
+
+#                 for student_data in students_data:
+#                     serializer = StudentSerializer(data=student_data)
+#                     if serializer.is_valid():
+#                         serializer.save()
+#                     else:
+#                         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+                
+#                 return Response({"Msg": "Excel uploaded Successfully","data":serializer.data}, status=status.HTTP_200_OK)
+#             except Exception as e:
+#                 return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+#         return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+from rest_framework.parsers import MultiPartParser
+import logging
+
+logger = logging.getLogger(__name__)
+
+class StudentsUploadViewset(viewsets.ViewSet):
+    queryset = Student.objects.all()
+    serializer_class = FileUploadSerializer
+
+    @action(detail=False, methods=['post'], url_path='upload')
+    def upload(self, request):
+        file_serializer = FileUploadSerializer(data=request.data)
+        print(file_serializer,'8888888888')
+        if not file_serializer.is_valid():
+            return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        file = request.FILES.get('file')
+        print(file)
+        if not file:
+            return Response({"error": "No file uploaded."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            workbook = openpyxl.load_workbook(file)
+            print(workbook,'666666666')
+            sheet = workbook.active
+            print(sheet,'77777777')
+
+            headers = [cell.value for cell in sheet[1]]
+            print(headers,'1111111111')
+            students_data = [dict(zip(headers, row)) for row in sheet.iter_rows(min_row=2, values_only=True)]
+            print(students_data,'2222222222')
+
+            errors = []
+            successful_creations = []
+
+            for student_data in students_data:
+                serializer = StudentUploadSerializer(data=student_data)
+                if serializer.is_valid():
+                    serializer.save()
+                    successful_creations.append(serializer.data)
+                else:
+                    errors.append(serializer.errors)
+
+            if errors:
+                return Response({"errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({"message": "Excel uploaded successfully", "data": successful_creations}, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+

@@ -9,9 +9,10 @@ from student.serializers import (
     BusAssignmentSerializer,
     RouteListSerializer,
     StudentByRouteSerializer,
+    # ClassTransferSerializer
 )
-from django.db import transaction
-from django.db.models import Q
+from rest_framework import viewsets
+from rest_framework.decorators import action
 
 
 class BusPointSearchAPIView(APIView):
@@ -130,3 +131,11 @@ class StudentsByRouteAPIView(APIView):
 
         serializer = StudentByRouteSerializer(route)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+# class StudentTransferViewset(viewsets.ModelViewSet):
+#     queryset = Student.objects.all()
+#     serializer_class = ClassTransferSerializer
+    
+#     @action(detail=False,methods=['post'])

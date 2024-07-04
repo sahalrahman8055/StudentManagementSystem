@@ -78,10 +78,8 @@ class TeacherProfileViewset(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         teacher = self.get_queryset().first()
-        print(teacher)
         if not teacher:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
-
         serializer = self.get_serializer(teacher, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
