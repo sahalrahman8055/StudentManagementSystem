@@ -1,5 +1,5 @@
 from rest_framework.views import APIView
-from student.models import Student, StudentBusService
+from student.models import Student, StudentBusService , ClassRoom
 from schoolbus.models import Bus, BusPoint, Route
 from rest_framework.response import Response
 from rest_framework import status
@@ -9,10 +9,10 @@ from student.serializers import (
     BusAssignmentSerializer,
     RouteListSerializer,
     StudentByRouteSerializer,
-    # ClassTransferSerializer
 )
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from admins.utilities.permission import IsAdminUser
 
 
 class BusPointSearchAPIView(APIView):
@@ -134,8 +134,5 @@ class StudentsByRouteAPIView(APIView):
 
 
 
-# class StudentTransferViewset(viewsets.ModelViewSet):
-#     queryset = Student.objects.all()
-#     serializer_class = ClassTransferSerializer
-    
-#     @action(detail=False,methods=['post'])
+
+        

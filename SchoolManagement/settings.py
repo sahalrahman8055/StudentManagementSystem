@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework",
     "rest_framework_simplejwt",
+    'cloudinary',
+    'cloudinary_storage',
     "drf_yasg",
     "admins",
     "teacher",
@@ -181,7 +183,7 @@ AUTHENTICATION_BACKENDS = [
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "ACCESS_TOKEN_LIFETIME": timedelta(weeks=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": True,
@@ -220,20 +222,16 @@ MEDIA_ROOT = BASE_DIR /'uploads'
 
 MEDIA_URL = '/media/'
 
+cloudinary.config(
+    cloud_name=os.getenv('CLOUD_NAME'),
+    api_key=os.getenv('API_KEY'),
+    api_secret=os.getenv('API_SECRET')
+)
+
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 CLOUDINARY_ALLOWED_FORMATS = [
-    'jpg', 'jpeg', 'png', 'gif',  # Add other image formats as needed
-    'pdf', 'doc', 'docx',         # Add DOC and PDF formats
+    'jpg', 'jpeg', 'png', 'gif',
+    'pdf', 'doc', 'docx',
 ]
-
-# settings.py
-
-
-cloudinary.config(
-    CLOUD_NAME = os.getenv('CLOUD_NAME'),
-    API_KEY = os.getenv('CLOUDINARY_API_KEY'),
-    API_SECRET = os.getenv('CLOUDINARY_API_SECRET'),
-)
-
 

@@ -30,8 +30,8 @@ class CustomUserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
     GENDER_CHOICES = [
-        ("M", "Male"),
-        ("F", "Female"),
+        ("Male", "Male"),
+        ("Female", "Female"),
     ]
     email = models.EmailField(
         verbose_name="email address",
@@ -40,7 +40,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     name = models.CharField(max_length=150)
     username = models.CharField(max_length=100, blank=True, null=True, unique=True)
     phone = models.CharField(max_length=15, blank=True, null=True)
-    gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
     date_of_birth = models.DateField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)

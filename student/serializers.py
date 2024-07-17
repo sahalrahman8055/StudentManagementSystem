@@ -137,13 +137,6 @@ class StudentByRouteSerializer(serializers.ModelSerializer):
         return StudentBusServiceSerializer(bus_services, many=True).data
 
 
-# class ClassTransferSerializer(serializers.ModelSerializer):
-#     classroom_id = serializers.IntegerField()
-    
-#     def validate_class_room_id(self, value):
-#         try:
-#             ClassRoom.objects.get(id=value)
-#         except ClassRoom.DoesNotExist:
-#             raise serializers.ValidationError("Invalid classroom ID.")
-#         return value
+
+
             

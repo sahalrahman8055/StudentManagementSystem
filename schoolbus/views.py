@@ -10,11 +10,13 @@ from schoolbus.serializers import (
 )
 from schoolbus.models import Bus, Route, BusPoint
 from student.models import Student
+from admins.utilities.permission import IsAdminUser
 
 
 class BusViewset(viewsets.ModelViewSet):
     queryset = Bus.objects.all()
     serializer_class = BusSerializer
+    # serializer_class = [IsAdminUser]
 
     def perform_create(self, serializer):
         serializer.save()

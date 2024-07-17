@@ -1,7 +1,7 @@
 from django.db import models
 from admins.models import User
 from cloudinary.models import CloudinaryField
-
+import re
 
 class Teacher(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -13,14 +13,13 @@ class Teacher(models.Model):
 
 class ClassRoom(models.Model):
     name = models.CharField(max_length=150, unique=True)
-    capacity = models.PositiveIntegerField()
+    capacity = models.PositiveIntegerField(default=50)
     teachers = models.ManyToManyField(
         Teacher, through="ClassRoomTeacher", related_name="classTeacher"
     )
 
     def __str__(self):
         return self.name
-
 
 class ClassRoomTeacher(models.Model):
     classroom = models.ForeignKey(

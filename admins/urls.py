@@ -13,6 +13,7 @@ from admins.views import (
     StudentsUploadViewset
 )
 
+
 router = DefaultRouter()
 router.register(r"teachers", TeacherViewSet, basename="teacher")
 router.register(r"student", StudentViewSet, basename="student")
