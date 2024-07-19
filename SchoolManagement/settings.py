@@ -221,17 +221,3 @@ MEDIA_ROOT = BASE_DIR /'uploads'
 
 
 MEDIA_URL = '/media/'
-
-cloudinary.config(
-    cloud_name=os.getenv('CLOUD_NAME'),
-    api_key=os.getenv('API_KEY'),
-    api_secret=os.getenv('API_SECRET')
-)
-
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-
-CLOUDINARY_ALLOWED_FORMATS = [
-    'jpg', 'jpeg', 'png', 'gif',
-    'pdf', 'doc', 'docx',
-]
-

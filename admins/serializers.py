@@ -48,19 +48,12 @@ class TeacherSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user_data = validated_data.pop("user")
         user_data["is_staff"] = True
-        photo = self.context['request'].FILES.get('photo')  # Access uploaded file
 
         user = User.objects.create_user(**user_data)
-
-        photo_url = None
-        if photo:
-            upload_result = cloudinary.uploader.upload(photo)
-            photo_url = upload_result['url']
 
         teacher = Teacher.objects.create(
             user=user,
             pen_no=validated_data["pen_no"],
-            photo=photo_url  # Assign photo URL here
         )
         teacher_group, _ = Group.objects.get_or_create(name="teacher")
         teacher_group.user_set.add(user)
@@ -78,9 +71,6 @@ class TeacherSerializer(serializers.ModelSerializer):
             user.phone = user_data.get("phone", user.phone)
             user.gender = user_data.get("gender", user.gender)
             user.save()
-        
-        if photo:
-            instance.photo = photo 
 
         instance.save()
 
