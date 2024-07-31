@@ -5,7 +5,6 @@ from student.models import Student
 from django.contrib.auth.models import Group
 import random
 import string
-import cloudinary.uploader
 import re
  
 

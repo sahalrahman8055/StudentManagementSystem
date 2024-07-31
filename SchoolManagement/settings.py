@@ -10,9 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
-import cloudinary
-import cloudinary.uploader
-import cloudinary.api
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -48,8 +45,6 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework",
     "rest_framework_simplejwt",
-    'cloudinary',
-    'cloudinary_storage',
     "drf_yasg",
     "admins",
     "teacher",
@@ -102,6 +97,7 @@ WSGI_APPLICATION = "SchoolManagement.wsgi.application"
 #         "PORT": os.getenv("DB_PORT"),
 #     }
 # }
+
 
 DATABASES = {
     "default": dj_database_url.parse(os.environ.get('DATABASE_URL'))
