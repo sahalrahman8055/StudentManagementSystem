@@ -9,7 +9,11 @@ class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     admission_no = models.CharField(max_length=15, unique=True)
     guardian_name = models.CharField(max_length=150)
-    address = models.TextField(max_length=250, blank=True, null=True)
+    house_name = models.CharField(max_length=100, blank=True, null=True)
+    post_office = models.CharField(max_length=100, blank=True, null=True)
+    pincode = models.CharField(max_length=6, blank=True, null=True)
+    place = models.CharField(max_length=100, blank=True, null=True)
+    route = models.ForeignKey(Route, related_name="students", on_delete=models.CASCADE,blank=True,null=True)
     classRoom = models.ForeignKey(
         ClassRoom,
         on_delete=models.CASCADE,
@@ -20,7 +24,7 @@ class Student(models.Model):
     is_bus = models.BooleanField(default=False)
 
     def __str__(self) -> str:
-        return self.user.name
+        return f"{self.admission_no} - {self.user.name}"
 
 
 class StudentBusService(models.Model):

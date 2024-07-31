@@ -62,7 +62,6 @@ class TeacherSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         user_data = validated_data.pop("user",None)
-        photo = validated_data.pop("photo", None)
 
         if user_data:
             user = instance.user
@@ -90,10 +89,6 @@ class UserStudentSerializer(serializers.ModelSerializer):
 
 
 class StudentSerializer(serializers.ModelSerializer):
-    pincode = serializers.CharField(max_length=10, write_only=True)
-    house_name = serializers.CharField(max_length=150, write_only=True)
-    post_office = serializers.CharField(max_length=150, write_only=True)
-    place = serializers.CharField(max_length=100, write_only=True)
     user = UserStudentSerializer()
 
     class Meta:
@@ -102,7 +97,6 @@ class StudentSerializer(serializers.ModelSerializer):
             "id",
             "admission_no",
             "guardian_name",
-            "address",
             "pincode",
             "house_name",
             "post_office",
@@ -128,34 +122,16 @@ class StudentSerializer(serializers.ModelSerializer):
                 {"admission_no": f"The admission number '{admission_no}' is already taken."}
             )
 
-        # Create the user instance
         user = User.objects.create_user(**user_data)
 
-        # Create the address string
-        address = self.construct_address(
-            validated_data.pop("house_name", None),
-            validated_data.pop("post_office", None),
-            validated_data.pop("pincode", None),
-            validated_data.pop("place", None),
-        )
+        student = Student.objects.create(user=user, **validated_data)
 
-        # Create the student instance
-        student = Student.objects.create(user=user, address=address, **validated_data)
-
-        # Add the student to the 'student' group
         student_group = Group.objects.get(name="student")
         student_group.user_set.add(user) 
 
         return student
 
-    def construct_address(
-        self, house_name: str, post_office: str, pincode: str, place: str
-    ) -> str:
-        """
-        Construct the address from individual components.
-        """
-        address_parts = filter(None, [house_name, post_office, pincode, place])
-        return ", ".join(address_parts)
+
 
     def validate(self, data):
         """
@@ -165,13 +141,11 @@ class StudentSerializer(serializers.ModelSerializer):
         username = user_data.get("username")
         admission_no = data.get("admission_no")
 
-        # Check if user with the same username already exists
         if User.objects.filter(username=username).exists():
             raise serializers.ValidationError(
                 {"username": f"The username '{username}' is already taken."}
             )
 
-        # Check if student with the same admission number already exists
         if Student.objects.filter(admission_no=admission_no).exists():
             raise serializers.ValidationError(
                 {"admission_no": f"The admission number '{admission_no}' is already taken."}
@@ -196,7 +170,7 @@ class ClassRoomSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ClassRoom
-        fields = ('id', 'name', 'capacity', 'classTeacher', 'students')
+        fields = ('id', 'name','division', 'capacity', 'classTeacher', 'students')
 
     def get_classTeacher(self, obj):
         class_teacher = obj.classroom_teachers.filter(is_class_teacher=True).first()
@@ -204,12 +178,21 @@ class ClassRoomSerializer(serializers.ModelSerializer):
             return ClassRoomTeacherChoiceSerializer(class_teacher).data
         return None
     
+    def validate_division(self, value):
+        value = value.strip().upper()
+        if not value.isalpha() or len(value) != 1:
+            raise serializers.ValidationError("Division must be a single uppercase letter from A to Z.")
+        return value
+
+
     # def validate(self, data):
-    #     # Normalize the value
-    #     normalized_value = re.sub(r'\s+', '', data['name']).lower()
-    #     # Check if the normalized name exists in the database
-    #     if ClassRoom.objects.filter(name=normalized_value).exists():
-    #         raise serializers.ValidationError({'name': f'{data["name"]} is already taken. Please choose a different class name.'})
+    #     name = data.get('name')
+    #     division = data.get('division')
+
+    #     # Check for existing classrooms with the same name and division
+    #     if ClassRoom.objects.filter(name=name, division=division).exclude(id=self.instance.id if self.instance else None).exists():
+    #         raise serializers.ValidationError({"non_field_errors": ["A classroom with this name and division already exists."]})
+        
     #     return data
     
 
@@ -231,7 +214,7 @@ class ClassSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ClassRoom
-        fields = ['id', 'name']
+        fields = ['id', 'name','division']
 
     def to_internal_value(self, data):
         if isinstance(data, str):

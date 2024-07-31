@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from schoolbus.models import Bus, BusPoint, Route
 from student.models import Student
-
+from admins.serializers import UserStudentSerializer
+from teacher.models import ClassRoom
 
 class BusPointSerializer(serializers.ModelSerializer):
 
@@ -10,12 +11,36 @@ class BusPointSerializer(serializers.ModelSerializer):
         fields = ["id", "route", "name", "fee"]
 
 
-class RouteSerializer(serializers.ModelSerializer):
-    bus_points = BusPointSerializer(many=True, read_only=True)
+class StudentClassSerializer(serializers.ModelSerializer):
+    name = serializers.CharField()
 
     class Meta:
+        model = ClassRoom
+        fields = ['id', 'name','division']
+        
+class BusStudentSerializer(serializers.ModelSerializer):
+    user = UserStudentSerializer()
+    classRoom = StudentClassSerializer()
+    class Meta:
+        model = Student
+        fields = [
+            "id",
+            "admission_no",
+            # "guardian_name",
+            # "pincode",
+            # "house_name",
+            # "post_office",
+            "place",    
+            "classRoom",
+            "user",
+        ]
+
+class RouteSerializer(serializers.ModelSerializer):
+    bus_points = BusPointSerializer(many=True, read_only=True)
+    students = BusStudentSerializer(many=True, read_only=True)
+    class Meta:
         model = Route
-        fields = ["id", "bus", "route_no", "from_location", "to_location", "bus_points"]
+        fields = ["id", "bus", "route_no", "from_location", "to_location", "bus_points","students"]
 
     def update(self, instance, validated_data):
         instance.bus = validated_data.get("bus", instance.bus)
@@ -31,6 +56,7 @@ class RouteSerializer(serializers.ModelSerializer):
 
 class BusSerializer(serializers.ModelSerializer):
     routes = RouteSerializer(many=True, read_only=True)
+    # students = 
 
     class Meta:
         model = Bus

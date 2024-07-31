@@ -32,15 +32,5 @@ class BusPoint(models.Model):
     name = models.CharField(max_length=255)
     fee = models.DecimalField(max_digits=10, decimal_places=2)
 
-    # def save(self, *args, **kwargs):
-    #     # fees = BusPoint.objects.get(id=self.pk)
-    #     if not self.pk and self.fee!= fees.fee:
-    #         from student.models import Student
-    #         print(self.fee,fees.fee)
-    #         # student=Student.objects.filter()
-    #         pass
-    #         super(BusPoint, self).save(*args, **kwargs)
-    #     #     pass
-
     def __str__(self):
         return f"Bus Point {self.name} on Route {self.route.route_no} for Bus {self.route.bus.bus_no}"

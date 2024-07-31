@@ -78,7 +78,7 @@ class TeacherViewSet(viewsets.ModelViewSet):
 
 class StudentViewSet(viewsets.ModelViewSet):
     queryset = Student.objects.all()
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminUser]  
     serializer_class = StudentSerializer
 
     def perform_create(self, serializer):
@@ -129,6 +129,15 @@ class ClassRoomViewset(viewsets.ModelViewSet):
     queryset = ClassRoom.objects.all()
     serializer_class = ClassRoomSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        grade = self.request.query_params.get('grade')
+        if grade is not None:
+            queryset = queryset.filter(name__icontains=grade)
+        return queryset
+
+
 
 
 class ClassTeacherViewset(viewsets.ModelViewSet):

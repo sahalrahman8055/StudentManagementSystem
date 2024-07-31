@@ -3,6 +3,8 @@ from schoolbus.models import Bus, BusPoint, Route
 from student.models import Student, StudentBusService
 from schoolbus.serializers import BusSerializer, RouteSerializer, BusPointSerializer
 from teacher.models import ClassRoom
+from admins.models import User
+from admins.serializers import ClassSerializer
 
 class StudentBusSerializer(serializers.ModelSerializer):
 
@@ -105,7 +107,7 @@ class RouteListSerializer(serializers.ModelSerializer):
 class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
-        fields = ["id", "user", "admission_no", "guardian_name", "address", "classRoom"]
+        fields = ["id", "user", "admission_no", "guardian_name", "classRoom"]
 
 
 class StudentBusServiceSerializer(serializers.ModelSerializer):
@@ -138,5 +140,41 @@ class StudentByRouteSerializer(serializers.ModelSerializer):
 
 
 
+class UserStudentSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = User
+        fields = ['email', 'name', 'username', 'phone', 'gender', 'date_of_birth']
+        
+        
+class BusPointSerializer(serializers.ModelSerializer):
+    class Meta: 
+        model = BusPoint
+        fields = ['name', 'fee']
+        
+class RouteSerializer(serializers.ModelSerializer):
+    # bus = serializers.StringRelatedField()
+    
+    class Meta:
+        model = Route
+        fields = ['route_no', 'from_location', 'to_location', 'bus']
 
-            
+
+class StudentDetailSerializer(serializers.ModelSerializer):
+    user = UserStudentSerializer()
+    route = RouteSerializer()
+    classRoom = ClassSerializer()
+    bus_point = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Student
+        fields = ['id','user', 'admission_no', 'guardian_name', 'house_name', 'post_office', 'pincode', 'place', 'route', 'classRoom', 'bus_point']
+
+
+    def get_bus_point(self, obj):
+        # Fetch the specific bus point based on the student's route and place
+        bus_point = BusPoint.objects.filter(route=obj.route).first()
+        print(bus_point)
+        if bus_point:
+            return BusPointSerializer(bus_point).data
+        return None

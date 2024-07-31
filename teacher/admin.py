@@ -9,7 +9,7 @@ admin.site.register(ClassRoomTeacher)
 
 @admin.register(ClassRoom)
 class ClassROomAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "capacity")
+    list_display = ("id", "name", "division","capacity")
 
 
 @admin.register(Teacher)

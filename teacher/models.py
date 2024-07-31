@@ -1,4 +1,7 @@
+from django.core.exceptions import ValidationError
+from django.db.utils import IntegrityError
 from django.db import models
+from django.db.models import Q
 from admins.models import User
 import re
 
@@ -11,14 +14,22 @@ class Teacher(models.Model):
 
 
 class ClassRoom(models.Model):
-    name = models.CharField(max_length=150, unique=True)
+    name = models.CharField(max_length=150)
+    division = models.CharField(max_length=1)
     capacity = models.PositiveIntegerField(default=50)
     teachers = models.ManyToManyField(
         Teacher, through="ClassRoomTeacher", related_name="classTeacher"
     )
+    
+    class Meta:
+        unique_together = ('name', 'division')
+        constraints = [
+            models.CheckConstraint(check=models.Q(division__in='ABCDEFGHIJKLMNOPQRSTUVWXYZ'), name='valid_division')
+        ]
 
     def __str__(self):
-        return self.name
+        return f'{self.name} - {self.division}'
+    
 
 class ClassRoomTeacher(models.Model):
     classroom = models.ForeignKey(

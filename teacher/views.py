@@ -9,6 +9,7 @@ from teacher.serializers import (
     PaymentDetailSerializer,
     TeacherProfileSerializer
 )
+from admins.utilities.permission import IsAdminUser
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login
 from rest_framework.authtoken.models import Token
@@ -86,7 +87,7 @@ class TeacherProfileViewset(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-
+    
 class StudentViewset(viewsets.ModelViewSet):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer

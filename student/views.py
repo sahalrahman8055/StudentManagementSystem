@@ -9,6 +9,7 @@ from student.serializers import (
     BusAssignmentSerializer,
     RouteListSerializer,
     StudentByRouteSerializer,
+    StudentDetailSerializer
 )
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -20,11 +21,9 @@ class BusPointSearchAPIView(APIView):
     def get(self, request):
         search_query = request.query_params.get("query", None)
         if search_query:
-            print(f"Search Query: {search_query}")
             bus_points = BusPoint.objects.filter(
                 name__icontains=search_query
             ).select_related("route", "route__bus")
-            print(f"Bus Points: {bus_points}")
             if bus_points.exists():
                 routes = {bp.route for bp in bus_points}
                 serializer = RouteListSerializer(
@@ -46,10 +45,13 @@ class AssignBusServiceAPIView(APIView):
 
     def get(self, request, student_id):
         try:
+            print(f"Received student_id: {student_id}")
             bus_service = StudentBusService.objects.select_related("student").get(
                 student__user_id=student_id
             )
+            print(f"Found bus service: {bus_service}")
         except StudentBusService.DoesNotExist:
+            print("Bus service for student not found.")
             return Response(
                 {"error": "Bus service for student not found."},
                 status=status.HTTP_404_NOT_FOUND,
@@ -57,7 +59,8 @@ class AssignBusServiceAPIView(APIView):
         serializer = StudentBusServiceSerializer(bus_service)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def put(self, request, student_id):
+
+    def put(self, request, student_id): 
         serializer = BusAssignmentSerializer(data=request.data)
         if serializer.is_valid():
             route_number = serializer.validated_data["route_number"]
@@ -135,4 +138,6 @@ class StudentsByRouteAPIView(APIView):
 
 
 
-        
+class StudentDetailsViewsets(viewsets.ModelViewSet):
+    queryset = Student.objects.select_related('user', 'route__bus', 'classRoom').prefetch_related('route__bus_points')
+    serializer_class = StudentDetailSerializer
