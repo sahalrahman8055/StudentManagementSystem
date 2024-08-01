@@ -132,25 +132,25 @@ class StudentSerializer(serializers.ModelSerializer):
 
 
 
-    def validate(self, data):
-        """
-        Validate the incoming data.
-        """
-        user_data = data.get("user")
-        username = user_data.get("username")
-        admission_no = data.get("admission_no")
+    # def validate(self, data):
+    #     """
+    #     Validate the incoming data.
+    #     """
+    #     user_data = data.get("user")
+    #     username = user_data.get("username")
+    #     admission_no = data.get("admission_no")
 
-        if User.objects.filter(username=username).exists():
-            raise serializers.ValidationError(
-                {"username": f"The username '{username}' is already taken."}
-            )
+    #     if User.objects.filter(username=username).exists():
+    #         raise serializers.ValidationError(
+    #             {"username": f"The username '{username}' is already taken."}
+    #         )
 
-        if Student.objects.filter(admission_no=admission_no).exists():
-            raise serializers.ValidationError(
-                {"admission_no": f"The admission number '{admission_no}' is already taken."}
-            )
+    #     if Student.objects.filter(admission_no=admission_no).exists():
+    #         raise serializers.ValidationError(
+    #             {"admission_no": f"The admission number '{admission_no}' is already taken."}
+    #         )
 
-        return data
+    #     return data
 
 class ClassRoomTeacherChoiceSerializer(serializers.ModelSerializer):
     teacher = serializers.SerializerMethodField()
