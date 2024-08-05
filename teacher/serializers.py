@@ -47,11 +47,10 @@ class BusPointChoiceSerializer(serializers.ModelSerializer):
 
 
 class RouteChoiceSerializer(serializers.ModelSerializer):
-    bus_points = BusPointChoiceSerializer(many=True, read_only=True)
-
+    bus_points = BusPointChoiceSerializer(many=True,write_only=True)
     class Meta:
         model = Route
-        fields = ["id", "bus", "route_no", "from_location", "to_location", "bus_points"]
+        fields = ["id", "bus", "route_no", "from_location", "to_location","bus_points"]
 
 
 class BusListSerializer(serializers.ModelSerializer):
@@ -98,13 +97,12 @@ class BusStudentSerializer(serializers.ModelSerializer):
 class PaymentSerializer(serializers.ModelSerializer):
     student = serializers.PrimaryKeyRelatedField(queryset=Student.objects.all())
     amount = serializers.DecimalField(max_digits=10, decimal_places=2)
-    method = serializers.ChoiceField(choices=Payment.PAYMENT_METHOD)
     paid_amount = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     balance_amount = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
 
     class Meta:
         model = Payment
-        fields = ('id', 'student', 'amount', 'method', 'paid_amount', 'balance_amount', 'created_at')
+        fields = ('id', 'student', 'amount', 'paid_amount', 'balance_amount', 'created_at')
 
     def validate_amount(self, value):
         if value <= 0:
@@ -143,7 +141,6 @@ class PaymentSerializer(serializers.ModelSerializer):
     
     def update(self, instance, validated_data):
         instance.amount = validated_data.get('amount', instance.amount)
-        instance.method = validated_data.get('method', instance.method)
         instance.save()
 
         total_paid = Payment.objects.filter(student=instance.student).aggregate(total=Sum('amount'))['total'] or 0

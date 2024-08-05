@@ -8,9 +8,13 @@ import string
 import re
  
 
-class AdminLoginSerializer(serializers.Serializer):
-    username = serializers.CharField()
-    password = serializers.CharField()
+class UserLoginSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = '__all__'
+        ref_name = 'AuthUser'
+        read_only_fields = ('id', 'email')
+        extra_kwargs = {'password': {'write_only': True}}
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -95,6 +99,7 @@ class StudentSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "admission_no",
+            "photo",
             "guardian_name",
             "pincode",
             "house_name",

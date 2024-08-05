@@ -7,13 +7,14 @@ from django.db.models import Sum
 
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    photo = models.ImageField('students/',null=True,blank=True)
     admission_no = models.CharField(max_length=15, unique=True)
     guardian_name = models.CharField(max_length=150)
     house_name = models.CharField(max_length=100, blank=True, null=True)
     post_office = models.CharField(max_length=100, blank=True, null=True)
     pincode = models.CharField(max_length=6, blank=True, null=True)
     place = models.CharField(max_length=100, blank=True, null=True)
-    route = models.ForeignKey(Route, related_name="students", on_delete=models.CASCADE,blank=True,null=True)
+    # route = models.ForeignKey(Route, related_name="students", on_delete=models.CASCADE,blank=True,null=True)
     classRoom = models.ForeignKey(
         ClassRoom,
         on_delete=models.CASCADE,
@@ -43,21 +44,16 @@ class StudentBusService(models.Model):
 
 
 class Payment(models.Model):
-    PAYMENT_METHOD = [
-        ("UPI", "UPI"),
-        ("CASH", "CASH"),
-    ]
     student = models.ForeignKey(
         Student, on_delete=models.CASCADE, related_name="payments"
     )
-    method = models.CharField(blank=True,null=True, choices=PAYMENT_METHOD)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    balance_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0) 
+    balance_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'Payment: {self.amount} (Method: {self.method})'
+        return f'Payment: {self.amount}'
     
     def save(self, *args, **kwargs):
         # Calculate total paid amount including this instance

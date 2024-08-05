@@ -21,11 +21,12 @@ from .models import Teacher, ClassRoomTeacher, ClassRoom
 from student.models import Student, StudentBusService
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from admins.utilities.permission import isTeacher
+from admins.utilities.permission import IsTeacher
 from rest_framework.decorators import action
 from student.models import Payment
 from rest_framework.generics import CreateAPIView
 from django.db.models import Sum
+from admins.utilities.permission import IsAdminOrTeacher
 
 logger = logging.getLogger(__name__)
 
@@ -91,7 +92,7 @@ class TeacherProfileViewset(viewsets.ModelViewSet):
 class StudentViewset(viewsets.ModelViewSet):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
-    permission_classes = [isTeacher]
+    permission_classes = [IsTeacher]
 
     def get_classroom(self, user):
         try:
@@ -124,12 +125,12 @@ class StudentViewset(viewsets.ModelViewSet):
 class BusStudentsViewset(viewsets.ModelViewSet):
     queryset = Student.objects.all()
     serializer_class = BusStudentSerializer
-    permission_classes = [isTeacher]
+    permission_classes = [IsAdminOrTeacher]
 
     def get_student_bus_details(self, user_id):
         try:
             bus_service = StudentBusService.objects.select_related("student__user").get(
-                student__user__id=user_id
+                student__id=user_id
             )
             return bus_service
         except StudentBusService.DoesNotExist:

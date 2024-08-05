@@ -8,6 +8,7 @@ from student.serializers import (
     StudentBusSerializer,
     BusAssignmentSerializer,
     RouteListSerializer,
+    BusPointChoiceSerializer,
     StudentByRouteSerializer,
     StudentDetailSerializer
 )
@@ -22,12 +23,11 @@ class BusPointSearchAPIView(APIView):
         search_query = request.query_params.get("query", None)
         if search_query:
             bus_points = BusPoint.objects.filter(
-                name__icontains=search_query
+                name__istartswith=search_query
             ).select_related("route", "route__bus")
             if bus_points.exists():
-                routes = {bp.route for bp in bus_points}
-                serializer = RouteListSerializer(
-                    routes, many=True, context={"request": request}
+                serializer = BusPointChoiceSerializer(
+                    bus_points, many=True, context={"request": request}
                 )
                 return Response(serializer.data, status=status.HTTP_200_OK)
             return Response(
@@ -41,31 +41,44 @@ class BusPointSearchAPIView(APIView):
             )
 
 
+
 class AssignBusServiceAPIView(APIView):
 
     def get(self, request, student_id):
         try:
             print(f"Received student_id: {student_id}")
-            bus_service = StudentBusService.objects.select_related("student").get(
-                student__user_id=student_id
-            )
+
+            # Fetch the student's bus service data
+            bus_service = StudentBusService.objects.select_related("student").get(student__id=student_id)
             print(f"Found bus service: {bus_service}")
+
         except StudentBusService.DoesNotExist:
             print("Bus service for student not found.")
             return Response(
                 {"error": "Bus service for student not found."},
                 status=status.HTTP_404_NOT_FOUND,
             )
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+            return Response(
+                {"error": "An unexpected error occurred."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
         serializer = StudentBusServiceSerializer(bus_service)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-    def put(self, request, student_id): 
+
+    def put(self, request): 
+        print(request.data)
         serializer = BusAssignmentSerializer(data=request.data)
         if serializer.is_valid():
             route_number = serializer.validated_data["route_number"]
+            student_id = serializer.validated_data["student_id"]
             bus_point_id = serializer.validated_data["bus_point_id"]
-
+            changed_fee = serializer.validated_data.get("changed_fee")
+            print(serializer.data)
             try:
                 route = Route.objects.get(
                     route_no=route_number, bus_points__id=bus_point_id
@@ -83,7 +96,7 @@ class AssignBusServiceAPIView(APIView):
                 )
 
             try:
-                student = Student.objects.get(user_id=student_id)
+                student = Student.objects.get(id=student_id)
             except Student.DoesNotExist:
                 return Response(
                     {"error": "Student not found."}, status=status.HTTP_404_NOT_FOUND
@@ -95,7 +108,7 @@ class AssignBusServiceAPIView(APIView):
             bus_service.bus = route.bus
             bus_service.route = route
             bus_service.bus_point = bus_point
-            bus_service.annual_fees = float(bus_point.fee) * 10
+            bus_service.annual_fees = changed_fee
 
             bus = route.bus
             if bus.capacity <= 0:
@@ -107,11 +120,11 @@ class AssignBusServiceAPIView(APIView):
             bus.capacity = max(bus.capacity - 1, 0)
             bus.save()
 
+            student.route = bus_service.route
             student.is_bus = True
             student.save()
 
             bus_service.save()
-
             serializer = StudentBusSerializer(student)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
@@ -139,5 +152,5 @@ class StudentsByRouteAPIView(APIView):
 
 
 class StudentDetailsViewsets(viewsets.ModelViewSet):
-    queryset = Student.objects.select_related('user', 'route__bus', 'classRoom').prefetch_related('route__bus_points')
+    queryset = Student.objects.prefetch_related('bus_service','bus_service__route','bus_service__bus_point').select_related('classRoom','user')
     serializer_class = StudentDetailSerializer

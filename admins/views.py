@@ -2,7 +2,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework import viewsets
 from .serializers import (
-    AdminLoginSerializer,
+    UserLoginSerializer,
     TeacherSerializer,
     ClassRoomSerializer,
     StudentSerializer,
@@ -25,7 +25,7 @@ from admins.utilities.permission import IsAdminUser
 from rest_framework.generics import CreateAPIView
 from rest_framework.decorators import action
 import openpyxl
-
+from rest_framework.parsers import MultiPartParser, FormParser
 
 class AdminLoginAPIView(APIView):
     permission_classes = [
@@ -33,25 +33,35 @@ class AdminLoginAPIView(APIView):
     ]
 
     def post(self, request):
-        print(request.data)
-        serializer = AdminLoginSerializer(data=request.data)
-        if serializer.is_valid():
-            username = serializer.validated_data["username"]
-            password = serializer.validated_data["password"]
-            user = authenticate(username=username, password=password)
-
-            if user is not None:
-                login(request, user)
-                token = get_tokens_for_user(user)
-                return Response(
-                    {"message": "Login successful", "token": token},
-                    status=status.HTTP_200_OK,
-                )
-            return Response(
-                {"message": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED
-            )
+        username = request.data.get('username')
+        password = request.data.get('password')
+        role = request.data.get('role')
+        
+        if username and password and role:
+            try:
+                if role == 'admin':
+                    user = User.objects.get(username=username, is_superuser=True)
+                elif role == 'teacher':
+                    user = User.objects.get(username=username, groups__name='teacher')
+                else:
+                    return Response({"message": "Invalid role specified."}, status=status.HTTP_400_BAD_REQUEST)
+                
+                if user.check_password(password):
+                    token = get_tokens_for_user(user)
+                    user_serializer = UserLoginSerializer(user)
+                    data = {
+                        'token': token,
+                        "user":user_serializer.data,
+                        'role':role
+                        }
+                    return Response(data, status=status.HTTP_200_OK)
+                else:
+                    return Response({'message': 'Invalid credentials' }, status=status.HTTP_401_UNAUTHORIZED)
+            except User.DoesNotExist:
+                return Response({'message': 'User not Found'}, status=status.HTTP_404_NOT_FOUND)
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': 'Email, password, and role are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        
 
 
 class TeacherViewSet(viewsets.ModelViewSet):
@@ -126,11 +136,13 @@ class StudentViewSet(viewsets.ModelViewSet):
 
 
 class ClassRoomViewset(viewsets.ModelViewSet):
+    
     queryset = ClassRoom.objects.all()
     serializer_class = ClassRoomSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        print(self.request.get_full_path())
         queryset = super().get_queryset()
         grade = self.request.query_params.get('grade')
         if grade is not None:

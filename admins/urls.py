@@ -15,11 +15,11 @@ from admins.views import (
 
 
 router = DefaultRouter()
-router.register(r"teachers", TeacherViewSet, basename="teacher")
-router.register(r"student", StudentViewSet, basename="student")
-router.register(r"classteacher", ClassTeacherViewset, basename="classTeacher")
-router.register(r"classroom", ClassRoomViewset, basename="ClassRoom")
-router.register(r"upload", StudentsUploadViewset, basename="upload")
+router.register("teachers", TeacherViewSet, basename="teacher")
+router.register("student", StudentViewSet, basename="student")
+router.register("classteacher", ClassTeacherViewset, basename="classTeacher")
+router.register("classroom", ClassRoomViewset, basename="ClassRoom")
+router.register("upload", StudentsUploadViewset, basename="upload")
 
 
 urlpatterns = [

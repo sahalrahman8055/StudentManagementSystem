@@ -12,7 +12,7 @@ router.register(r"studentDetail", StudentDetailsViewsets, basename="student-deta
 urlpatterns = [
     path("", include(router.urls)),
     path(
-        "schoolbus/<int:student_id>/",
+        "schoolbus/",
         AssignBusServiceAPIView.as_view(),
         name="student-bus-update",
     ),

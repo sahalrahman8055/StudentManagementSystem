@@ -54,6 +54,8 @@ class StudentBusGetSerializer(serializers.ModelSerializer):
 class BusAssignmentSerializer(serializers.Serializer):
     route_number = serializers.IntegerField()
     bus_point_id = serializers.IntegerField()
+    student_id = serializers.IntegerField()
+    changed_fee = serializers.IntegerField()
 
 
 class StudentBusServiceSerializer(serializers.ModelSerializer):
@@ -72,7 +74,6 @@ class StudentBusSerializer(serializers.ModelSerializer):
             "user",
             "admission_no",
             "guardian_name",
-            "address",
             "is_bus",
             "classRoom",
             "bus_service",
@@ -107,7 +108,7 @@ class RouteListSerializer(serializers.ModelSerializer):
 class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
-        fields = ["id", "user", "admission_no", "guardian_name", "classRoom"]
+        fields = ["id", "user", "admission_no", "classRoom"]
 
 
 class StudentBusServiceSerializer(serializers.ModelSerializer):
@@ -138,20 +139,45 @@ class StudentByRouteSerializer(serializers.ModelSerializer):
         bus_services = StudentBusService.objects.filter(route=obj)
         return StudentBusServiceSerializer(bus_services, many=True).data
 
-
-
 class UserStudentSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
         fields = ['email', 'name', 'username', 'phone', 'gender', 'date_of_birth']
+
+class StudentSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Student
+        fields = ["id", "user", "admission_no", "classRoom"]
+        
+        
         
         
 class BusPointSerializer(serializers.ModelSerializer):
     class Meta: 
         model = BusPoint
         fields = ['name', 'fee']
+
+class BusChoiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Bus
+        fields = "__all__"
         
+class RouteChoiceSerializer(serializers.ModelSerializer):
+    bus = BusChoiceSerializer()
+    
+    class Meta:
+        model = Route
+        fields = ['route_no', 'from_location', 'to_location', 'bus']
+        
+class BusPointChoiceSerializer(serializers.ModelSerializer):
+    route = RouteChoiceSerializer()
+    
+    class Meta: 
+        model = BusPoint
+        fields = ['id','name', 'fee','route']
+
 class RouteSerializer(serializers.ModelSerializer):
     # bus = serializers.StringRelatedField()
     
@@ -159,22 +185,27 @@ class RouteSerializer(serializers.ModelSerializer):
         model = Route
         fields = ['route_no', 'from_location', 'to_location', 'bus']
 
-
+class StudentBusServiceChoiceSerializer(serializers.ModelSerializer):
+    route = RouteSerializer()
+    bus_point = BusPointSerializer()
+    class Meta:
+        model = StudentBusService
+        fields = ('bus','route','bus_point','annual_fees')
 class StudentDetailSerializer(serializers.ModelSerializer):
     user = UserStudentSerializer()
-    route = RouteSerializer()
     classRoom = ClassSerializer()
-    bus_point = serializers.SerializerMethodField()
+    bus_service = StudentBusServiceChoiceSerializer()
 
     class Meta:
         model = Student
-        fields = ['id','user', 'admission_no', 'guardian_name', 'house_name', 'post_office', 'pincode', 'place', 'route', 'classRoom', 'bus_point']
+        fields = ['id','user','photo', 'admission_no', 'guardian_name', 'house_name', 'post_office', 'pincode', 'place', 'classRoom','bus_service']
 
 
-    def get_bus_point(self, obj):
-        # Fetch the specific bus point based on the student's route and place
-        bus_point = BusPoint.objects.filter(route=obj.route).first()
-        print(bus_point)
-        if bus_point:
-            return BusPointSerializer(bus_point).data
-        return None
+  
+    
+    
+class BusPointGetSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = BusPoint
+        fields = ("id","name",'fee')
