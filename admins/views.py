@@ -135,15 +135,16 @@ class StudentViewSet(viewsets.ModelViewSet):
 
 
 class ClassRoomViewset(viewsets.ModelViewSet):
-    
     queryset = ClassRoom.objects.all()
     serializer_class = ClassRoomSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         print(self.request.get_full_path())
+        
         queryset = super().get_queryset()
         grade = self.request.query_params.get('grade')
+        print(f"Received grade: {grade}") 
         if grade is not None:
             queryset = queryset.filter(name__icontains=grade)
         return queryset
