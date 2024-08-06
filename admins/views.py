@@ -24,13 +24,11 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from admins.utilities.permission import IsAdminUser
 from rest_framework.generics import CreateAPIView
 from rest_framework.decorators import action
-import openpyxl
+import openpyxl 
 from rest_framework.parsers import MultiPartParser, FormParser
 
 class AdminLoginAPIView(APIView):
-    permission_classes = [
-        AllowAny,
-    ]
+    permission_classes = [AllowAny]
 
     def post(self, request):
         username = request.data.get('username')
@@ -51,16 +49,17 @@ class AdminLoginAPIView(APIView):
                     user_serializer = UserLoginSerializer(user)
                     data = {
                         'token': token,
-                        "user":user_serializer.data,
-                        'role':role
-                        }
+                        "user": user_serializer.data,
+                        'role': role
+                    }
                     return Response(data, status=status.HTTP_200_OK)
                 else:
-                    return Response({'message': 'Invalid credentials' }, status=status.HTTP_401_UNAUTHORIZED)
+                    return Response({'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
             except User.DoesNotExist:
-                return Response({'message': 'User not Found'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
         else:
-            return Response({'message': 'Email, password, and role are required.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': 'Username, password, and role are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
         
 
 
