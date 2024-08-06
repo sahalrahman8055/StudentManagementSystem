@@ -37,7 +37,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name="email address",
         max_length=255,
     )
-    photo = models.ImageField('profile/',null=True,blank=True)
     name = models.CharField(max_length=150)
     username = models.CharField(max_length=100, blank=True, null=True, unique=True)
     phone = models.CharField(max_length=15, blank=True, null=True)
