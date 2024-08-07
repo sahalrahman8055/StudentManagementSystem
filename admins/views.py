@@ -33,24 +33,18 @@ class AdminLoginAPIView(APIView):
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
-        role = request.data.get('role')
         
-        if username and password and role:
+        if username and password:
             try:
-                if role == 'admin':
-                    user = User.objects.get(username=username, is_superuser=True)
-                elif role == 'teacher':
-                    user = User.objects.get(username=username, groups__name='teacher')
-                else:
-                    return Response({"message": "Invalid role specified."}, status=status.HTTP_400_BAD_REQUEST)
+                user = User.objects.get(username=username)
                 
                 if user.check_password(password):
-                    token = get_tokens_for_user(user)
+                    tokens = get_tokens_for_user(user)
                     user_serializer = UserLoginSerializer(user)
                     data = {
-                        'token': token,
+                        'token': tokens,
                         "user": user_serializer.data,
-                        'role': role
+                        'role': tokens['role']  # Include role from tokens
                     }
                     return Response(data, status=status.HTTP_200_OK)
                 else:
@@ -58,11 +52,9 @@ class AdminLoginAPIView(APIView):
             except User.DoesNotExist:
                 return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
         else:
-            return Response({'message': 'Username, password, and role are required.'}, status=status.HTTP_400_BAD_REQUEST)
-
+            return Response({'message': 'Username and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
         
-
-
+        
 class TeacherViewSet(viewsets.ModelViewSet):
     queryset = Teacher.objects.all()
     permission_classes = [IsAdminUser]
