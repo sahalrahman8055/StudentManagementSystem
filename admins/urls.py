@@ -10,7 +10,8 @@ from admins.views import (
     #  StudentGetUpdateViewset,
     ClassTeacherViewset,
     StudentViewSet,
-    StudentsUploadViewset
+    StudentsUploadViewset,
+    AdminDash
 )
 
 
@@ -24,5 +25,6 @@ router.register("upload", StudentsUploadViewset, basename="upload")
 
 urlpatterns = [
     path("login/", AdminLoginAPIView.as_view(), name="login"),
+    path("dashboard/", AdminDash.as_view(), name="dash"),
     path("", include(router.urls)),
 ]

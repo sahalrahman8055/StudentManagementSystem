@@ -11,6 +11,7 @@ from .serializers import (
     FileUploadSerializer,
     StudentUploadSerializer
 )
+from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login
 from rest_framework.authtoken.models import Token
@@ -20,6 +21,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.views.decorators.csrf import csrf_exempt
 from teacher.models import ClassRoom, Teacher, ClassRoomTeacher
 from student.models import Student
+from schoolbus.models import Bus
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from admins.utilities.permission import IsAdminUser
 from rest_framework.generics import CreateAPIView
@@ -85,16 +87,16 @@ class StudentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         classroom_id = self.request.query_params.get("classroom_id")
         if not classroom_id:
-            raise serializer.ValidationError(
+            raise ValidationError(
                 {"classroom_id": "This query parameter is required."}
             )
         try:
             classroom = ClassRoom.objects.get(id=classroom_id)
         except ClassRoom.DoesNotExist:
-            raise serializer.ValidationError({"classroom_id": "Invalid classroom ID."})
+            raise ValidationError({"classroom_id": "Invalid classroom ID."})
 
         serializer.save(classRoom=classroom)
-        return Response("Student Created Successfully",status=status.HTTP_201_CREATED)
+        return Response("Student Created Successfully", status=status.HTTP_201_CREATED)
     
     
     @action(detail=True, methods=['post'])
@@ -249,3 +251,24 @@ class StudentsUploadViewset(viewsets.ViewSet):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
         
+class AdminDash(APIView):
+
+    def get(self, request):
+        students_count = Student.objects.count()
+
+        classrooms_count = ClassRoom.objects.count()
+
+        teachers_count = Teacher.objects.count()
+        
+        bus_count = Bus.objects.count()
+
+        data = {
+            "students_count": students_count,
+            "classrooms_count": classrooms_count,
+            "teachers_count": teachers_count,
+            "bus_count": bus_count,
+        }
+
+        return Response(data, status=status.HTTP_200_OK)
+    
+    
