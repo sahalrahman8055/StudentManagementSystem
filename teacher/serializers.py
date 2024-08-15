@@ -47,7 +47,7 @@ class BusPointChoiceSerializer(serializers.ModelSerializer):
 
 
 class RouteChoiceSerializer(serializers.ModelSerializer):
-    bus_points = BusPointChoiceSerializer(many=True,write_only=True)
+    bus_points = BusPointChoiceSerializer(many=True,read_only=True)
     class Meta:
         model = Route
         fields = ["id", "bus", "route_no", "from_location", "to_location","bus_points"]
@@ -75,7 +75,6 @@ class UserStudentSerializer(serializers.ModelSerializer):
 
 
 class StudentSerializer(serializers.ModelSerializer):
-    # id = serializers.IntegerField(read_only=True) 
     user = StudentListSerializer()
 
     class Meta:
