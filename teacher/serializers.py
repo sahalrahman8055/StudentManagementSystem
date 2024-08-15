@@ -75,7 +75,7 @@ class UserStudentSerializer(serializers.ModelSerializer):
 
 
 class StudentSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(read_only=True) 
+    # id = serializers.IntegerField(read_only=True) 
     user = StudentListSerializer()
 
     class Meta:
