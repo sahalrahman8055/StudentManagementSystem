@@ -55,38 +55,38 @@ class TeacherProfileViewset(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-    
-class StudentViewset(viewsets.ModelViewSet):
-    queryset = Student.objects.all()
-    serializer_class = StudentSerializer
-    permission_classes = [IsTeacher]
+        
+    class StudentViewset(viewsets.ModelViewSet):
+        queryset = Student.objects.all()
+        serializer_class = StudentSerializer
+        permission_classes = [IsTeacher]
 
-    def get_classroom(self, user):
-        try:
-            classroom_teacher = ClassRoomTeacher.objects.get(
-                teacher__user=user, is_class_teacher=True
-            )
-            return classroom_teacher.classroom
-        except ClassRoomTeacher.DoesNotExist:
-            return None
+        def get_classroom(self, user):
+            try:
+                classroom_teacher = ClassRoomTeacher.objects.get(
+                    teacher__user=user, is_class_teacher=True
+                )
+                return classroom_teacher.classroom
+            except ClassRoomTeacher.DoesNotExist:
+                return None
 
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        if not request.user.is_superuser and request.user.is_staff:
-            classroom = self.get_classroom(request.user)
-            queryset = queryset.filter(classRoom=classroom)
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-
-    @action(detail=False, methods=["GET"])
-    def get_bus_students(self, request):
-        queryset = self.get_queryset()
-        if not request.user.is_superuser and request.user.is_staff:
-            classroom = self.get_classroom(request.user)
-            queryset = queryset.filter(is_bus=True, classRoom=classroom)
+        def list(self, request, *args, **kwargs):
+            queryset = self.get_queryset()
+            if not request.user.is_superuser and request.user.is_staff:
+                classroom = self.get_classroom(request.user)
+                queryset = queryset.filter(classRoom=classroom)
             serializer = self.get_serializer(queryset, many=True)
             return Response(serializer.data)
-        return Response("yoyoyooyo")
+
+        @action(detail=False, methods=["GET"])
+        def get_bus_students(self, request):
+            queryset = self.get_queryset()
+            if not request.user.is_superuser and request.user.is_staff:
+                classroom = self.get_classroom(request.user)
+                queryset = queryset.filter(is_bus=True, classRoom=classroom)
+                serializer = self.get_serializer(queryset, many=True)
+                return Response(serializer.data)
+            return Response("yoyoyooyo")
 
 
 class BusStudentsViewset(viewsets.ModelViewSet):
