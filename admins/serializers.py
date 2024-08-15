@@ -82,7 +82,7 @@ class TeacherSerializer(serializers.ModelSerializer):
 class UserStudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "name", "username", 'gender',"phone", "date_of_birth"]
+        fields = ["id", "name", 'gender',"phone", "date_of_birth"]
         extra_kwargs = {
             "email": {
                 "write_only": True,
@@ -111,14 +111,14 @@ class StudentSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user_data = validated_data.pop("user")
-        username = user_data.get("username")
+        # username = user_data.get("username")
         admission_no = validated_data.get("admission_no")
 
         # Check if user with the same username already exists
-        if User.objects.filter(username=username).exists():
-            raise serializers.ValidationError(
-                {"username": f"The username '{username}' is already taken."}
-            )
+        # if User.objects.filter(username=username).exists():
+        #     raise serializers.ValidationError(
+        #         {"username": f"The username '{username}' is already taken."}
+        #     )
 
         # Check if student with the same admission number already exists
         if Student.objects.filter(admission_no=admission_no).exists():

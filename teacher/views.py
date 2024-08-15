@@ -28,39 +28,6 @@ from rest_framework.generics import CreateAPIView
 from django.db.models import Sum
 from admins.utilities.permission import IsAdminOrTeacher
 
-logger = logging.getLogger(__name__)
-
-class TeacherLoginAPIView(APIView):
-
-    def post(self, request):
-        serializer = TeacherLoginSerializer(data=request.data)
-        try:
-            if serializer.is_valid():
-                username = serializer.validated_data["username"]
-                password = serializer.validated_data["password"]
-
-                user = authenticate(username=username, password=password)
-                if user is not None:
-                    login(request, user)
-                    token = get_tokens_for_user(user)
-                    return Response(
-                        {"message": "Login successful", "token": token},
-                        status=status.HTTP_200_OK,
-                    )
-                else:
-                    return Response(
-                        {"message": "Invalid credentials"},
-                        status=status.HTTP_401_UNAUTHORIZED,
-                    )
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        except Exception as e:
-            return Response(
-                {"message": "An internal server error occurred."},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-
 
 class TeacherProfileViewset(viewsets.ModelViewSet):
     queryset = Teacher.objects.all()

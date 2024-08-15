@@ -17,7 +17,6 @@ class Route(models.Model):
     route_no = models.PositiveSmallIntegerField()
     from_location = models.CharField(max_length=255)
     to_location = models.CharField(max_length=255)
-    # students = models.ForeignKey('student.Student', on_delete=models.SET_NULL,null=True)
     class Meta:
         unique_together = ("bus", "route_no")
 

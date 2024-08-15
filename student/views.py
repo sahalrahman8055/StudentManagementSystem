@@ -77,7 +77,7 @@ class AssignBusServiceAPIView(APIView):
             route_number = serializer.validated_data["route_number"]
             student_id = serializer.validated_data["student_id"]
             bus_point_id = serializer.validated_data["bus_point_id"]
-            changed_fee = serializer.validated_data.get("changed_fee")
+            charged_fee = serializer.validated_data.get("changed_fee")
             print(serializer.data)
             try:
                 route = Route.objects.get(
@@ -108,7 +108,7 @@ class AssignBusServiceAPIView(APIView):
             bus_service.bus = route.bus
             bus_service.route = route
             bus_service.bus_point = bus_point
-            bus_service.annual_fees = changed_fee
+            bus_service.annual_fees = charged_fee
 
             bus = route.bus
             if bus.capacity <= 0:

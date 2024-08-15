@@ -41,3 +41,10 @@ class RouteViewset(viewsets.ModelViewSet):
 class BusPointViewset(viewsets.ModelViewSet):
     queryset = BusPoint.objects.all()
     serializer_class = BusPointSerializer
+
+
+
+class SchoolBusReciept(viewsets.ModelViewSet):
+    
+    def get(self):
+        pass

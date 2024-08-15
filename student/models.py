@@ -64,41 +64,4 @@ class Payment(models.Model):
         self.balance_amount = self.student.bus_service.annual_fees - total_paid
         super().save(*args, **kwargs)
     
-    # def save(self, *args, **kwargs):
-
-    #     total_paid = self.student.payments.aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
-    #     self.paid_amount = total_paid
-    #     # Update balance amount
-    #     self.balance_amount = self.student.bus_service.annual_fees - total_paid
-    #     super().save(*args, **kwargs)
-    
-    # def save(self, *args, **kwargs):
-    #     super().save(*args, **kwargs)  # Save the payment first
-
-    #     # Calculate total paid amount for the student
-    #     total_paid = self.student.payments.aggregate(total=Sum('amount'))['total'] or 0
-
-    #     # Calculate balance amount
-    #     annual_fees = self.student.bus_service.annual_fees
-    #     balance_amount = annual_fees - total_paid
-
-    #     # Update the representation of this payment instance
-    #     self.paid_amount = total_paid
-    #     self.balance_amount = balance_amount
-    #     self.save(update_fields=['paid_amount', 'balance_amount'])  # Save the updated fields
-
-    # def delete(self, *args, **kwargs):
-    #     # Calculate total paid amount for the student
-    #     total_paid = self.student.payments.aggregate(total=Sum('amount'))['total'] or 0
-
-    #     # Calculate balance amount
-    #     annual_fees = self.student.bus_service.annual_fees
-    #     balance_amount = annual_fees - total_paid
-
-    #     # Update the representation of this payment instance
-    #     self.paid_amount = total_paid
-    #     self.balance_amount = balance_amount
-    #     self.save(update_fields=['paid_amount', 'balance_amount'])  # Save the updated fields
-
-    #     super().delete(*args, **kwargs)
-    
+  
