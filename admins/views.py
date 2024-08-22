@@ -1,6 +1,6 @@
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework import viewsets
+from rest_framework import viewsets , filters
 from .serializers import (
     UserLoginSerializer,
     TeacherSerializer,
@@ -13,12 +13,9 @@ from .serializers import (
 )
 from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
-from django.contrib.auth import authenticate, login
-from rest_framework.authtoken.models import Token
 from admins.utilities.token import get_tokens_for_user
 from admins.models import User
 from rest_framework.permissions import IsAuthenticated
-from django.views.decorators.csrf import csrf_exempt
 from teacher.models import ClassRoom, Teacher, ClassRoomTeacher
 from student.models import Student
 from schoolbus.models import Bus
@@ -83,6 +80,8 @@ class StudentViewSet(viewsets.ModelViewSet):
     queryset = Student.objects.all()
     permission_classes = [IsAdminUser]  
     serializer_class = StudentSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ["user__name","admission_no"]
 
     def perform_create(self, serializer):
         classroom_id = self.request.query_params.get("classroom_id")
@@ -227,7 +226,6 @@ class StudentsUploadViewset(viewsets.ViewSet):
                     "place": student_data.get("Place"),
                     "classRoom": {"name": student_data.get("Class Room")},
                     "user": {
-                        "username": student_data.get("Username"),
                         "name": student_data.get("Name"),
                         "email": student_data.get("Email"),
                         "phone": student_data.get("Phone"),

@@ -215,14 +215,21 @@ class FileUploadSerializer(serializers.Serializer):
 
 class ClassSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
+    division = serializers.CharField(required=True)
 
     class Meta:
         model = ClassRoom
-        fields = ['id', 'name','division']
+        fields = ['id', 'name', 'division']
 
     def to_internal_value(self, data):
+        # If data is a string (e.g., "10A"), split it into name and division
         if isinstance(data, str):
-            data = {'name': data}
+            name_part = ''.join(filter(str.isdigit, data))   # Extract numeric part
+            division_part = ''.join(filter(str.isalpha, data))  # Extract alphabetic part
+            
+            # Replace data with the split name and division
+            data = {'name': name_part, 'division': division_part}
+
         return super().to_internal_value(data)
 
     def create(self, validated_data):
@@ -230,8 +237,10 @@ class ClassSerializer(serializers.ModelSerializer):
         return class_room
 
 
-def generate_username(name):
-        return ''.join(name.split()) + ''.join(random.choices(string.digits, k=2))
+
+
+# def generate_username(name):
+#         return ''.join(name.split()) + ''.join(random.choices(string.digits, k=2))
 
 class StudentUploadSerializer(serializers.ModelSerializer):
     pincode = serializers.CharField(max_length=10, write_only=True)
@@ -247,7 +256,6 @@ class StudentUploadSerializer(serializers.ModelSerializer):
             "id",
             "admission_no",
             "guardian_name",
-            "address",
             "pincode",
             "house_name",
             "post_office",
@@ -261,25 +269,17 @@ class StudentUploadSerializer(serializers.ModelSerializer):
         user_data = validated_data.pop("user")
         class_room_data = validated_data.pop("classRoom")
         
-        if 'username' not in user_data or not user_data['username']:
-            name = user_data.get('name', '')
-            username = generate_username(name)  
-            user_data['username'] = username
+        # if 'username' not in user_data or not user_data['username']:
+        #     name = user_data.get('name', '')
+            # username = generate_username(name)  
+            # user_data['username'] = username
 
         user = User.objects.create_user(**user_data)
         class_room, _ = ClassRoom.objects.get_or_create(**class_room_data)
 
-        address = self.construct_address(
-            validated_data.pop("house_name", ""),
-            validated_data.pop("post_office", ""),
-            validated_data.pop("pincode", ""),
-            validated_data.pop("place", "")
-        )
-
         student = Student.objects.create(
             user=user,
             classRoom=class_room,
-            address=address,
             **validated_data
         )
 
@@ -287,9 +287,6 @@ class StudentUploadSerializer(serializers.ModelSerializer):
         student_group.user_set.add(user) 
 
         return student
-    
-    def construct_address(self, house_name, post_office, pincode, place):
-        return ", ".join(filter(None, [house_name, post_office, pincode, place]))
 
     def validate(self, data):
         user_data = data.get("user")
