@@ -26,89 +26,89 @@ from rest_framework.decorators import action
 import openpyxl 
 from rest_framework.parsers import MultiPartParser, FormParser
 
-# class AdminLoginAPIView(APIView):
-#     permission_classes = [AllowAny]
-
-#     def post(self, request):
-#         username = request.data.get('username')
-#         password = request.data.get('password')
-        
-#         if username and password:
-#             try:
-#                 user = User.objects.get(username=username)
-                
-#                 if user.check_password(password):
-#                     tokens = get_tokens_for_user(user)
-#                     user_serializer = UserLoginSerializer(user)
-#                     data = {
-#                         'token': tokens,
-#                         "user": user_serializer.data,
-#                         'role': tokens['role']  # Include role from tokens
-#                     }
-#                     return Response(data, status=status.HTTP_200_OK)
-#                 else:
-#                     return Response({'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-#             except User.DoesNotExist:
-#                 return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-#         else:
-#             return Response({'message': 'Username and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
-
 class AdminLoginAPIView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        try:
-            username = request.data.get('username')
-            password = request.data.get('password')
-            
-            print("Received data:", request.data)  # Debugging: Print received data
-
-            if not username or not password:
-                print("Username or password missing")
-                return Response(
-                    {'message': 'Username and password are required.'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
+        username = request.data.get('username')
+        password = request.data.get('password')
+        
+        if username and password:
             try:
                 user = User.objects.get(username=username)
-                print("User found:", user)  # Debugging: Print user info
+                
+                if user.check_password(password):
+                    tokens = get_tokens_for_user(user)
+                    user_serializer = UserLoginSerializer(user)
+                    data = {
+                        'token': tokens,
+                        "user": user_serializer.data,
+                        'role': tokens['role']  # Include role from tokens
+                    }
+                    return Response(data, status=status.HTTP_200_OK)
+                else:
+                    return Response({'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
             except User.DoesNotExist:
-                print(f"User with username {username} not found")
-                return Response(
-                    {'message': f'User with username {username} not found'},
-                    status=status.HTTP_404_NOT_FOUND
-                )
+                return Response({'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({'message': 'Username and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-            if not user.check_password(password):
-                print("Invalid password")
-                return Response(
-                    {'message': 'Invalid credentials'},
-                    status=status.HTTP_401_UNAUTHORIZED
-                )
+# class AdminLoginAPIView(APIView):
+#     permission_classes = [AllowAny]
 
-            tokens = get_tokens_for_user(user)
-            print("Generated tokens:", tokens)  # Debugging: Print generated tokens
+#     def post(self, request):
+#         try:
+#             username = request.data.get('username')
+#             password = request.data.get('password')
+            
+#             print("Received data:", request.data)  # Debugging: Print received data
 
-            user_serializer = UserLoginSerializer(user)
-            print("Serialized user data:", user_serializer.data)  # Debugging: Print serialized data
+#             if not username or not password:
+#                 print("Username or password missing")
+#                 return Response(
+#                     {'message': 'Username and password are required.'},
+#                     status=status.HTTP_400_BAD_REQUEST
+#                 )
 
-            data = {
-                'token': tokens,
-                'user': user_serializer.data,
-                'role': tokens.get('role', 'user')
-            }
+#             try:
+#                 user = User.objects.get(username=username)
+#                 print("User found:", user)  # Debugging: Print user info
+#             except User.DoesNotExist:
+#                 print(f"User with username {username} not found")
+#                 return Response(
+#                     {'message': f'User with username {username} not found'},
+#                     status=status.HTTP_404_NOT_FOUND
+#                 )
 
-            print("Response data:", data)  # Debugging: Print final response data
+#             if not user.check_password(password):
+#                 print("Invalid password")
+#                 return Response(
+#                     {'message': 'Invalid credentials'},
+#                     status=status.HTTP_401_UNAUTHORIZED
+#                 )
 
-            return Response(data, status=status.HTTP_200_OK)
+#             tokens = get_tokens_for_user(user)
+#             print("Generated tokens:", tokens)  # Debugging: Print generated tokens
 
-        except Exception as e:
-            print("Exception occurred:", str(e))  # Debugging: Print exception message
-            return Response(
-                {'message': 'Internal server error', 'error': str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+#             user_serializer = UserLoginSerializer(user)
+#             print("Serialized user data:", user_serializer.data)  # Debugging: Print serialized data
+
+#             data = {
+#                 'token': tokens,
+#                 'user': user_serializer.data,
+#                 'role': tokens.get('role', 'user')
+#             }
+
+#             print("Response data:", data)  # Debugging: Print final response data
+
+#             return Response(data, status=status.HTTP_200_OK)
+
+#         except Exception as e:
+#             print("Exception occurred:", str(e))  # Debugging: Print exception message
+#             return Response(
+#                 {'message': 'Internal server error', 'error': str(e)},
+#                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
+#             )
 
 
         
