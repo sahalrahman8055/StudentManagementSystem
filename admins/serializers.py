@@ -64,7 +64,7 @@ class TeacherSerializer(serializers.ModelSerializer):
         return teacher
 
     def update(self, instance, validated_data):
-        user_data = validated_data.pop("user",None)
+        user_data = validated_data.pop("user", None)
 
         if user_data:
             user = instance.user
@@ -74,9 +74,13 @@ class TeacherSerializer(serializers.ModelSerializer):
             user.gender = user_data.get("gender", user.gender)
             user.save()
 
+        # Update Teacher model fields
+        instance.pen_no = validated_data.get("pen_no", instance.pen_no)
+        instance.photo = validated_data.get("photo", instance.photo)  # If needed
         instance.save()
 
         return instance
+
 
 
 class UserStudentSerializer(serializers.ModelSerializer):

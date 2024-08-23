@@ -65,6 +65,7 @@ class TeacherViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(teacher, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()
+            print(serializer.data)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Teacher.DoesNotExist:
             return Response(
