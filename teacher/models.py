@@ -16,20 +16,13 @@ class Teacher(models.Model):
 
 class ClassRoom(models.Model):
     name = models.CharField(max_length=150)
-    division = models.CharField(max_length=1)
     capacity = models.PositiveIntegerField(default=50)
     teachers = models.ManyToManyField(
         Teacher, through="ClassRoomTeacher", related_name="classTeacher"
     )
     
-    class Meta:
-        unique_together = ('name', 'division')
-        constraints = [
-            models.CheckConstraint(check=models.Q(division__in='ABCDEFGHIJKLMNOPQRSTUVWXYZ'), name='valid_division')
-        ]
-
     def __str__(self):
-        return f'{self.name} - {self.division}'
+        return f'{self.name}'
     
 
 class ClassRoomTeacher(models.Model):

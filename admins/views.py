@@ -53,65 +53,7 @@ class AdminLoginAPIView(APIView):
         else:
             return Response({'message': 'Username and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-# class AdminLoginAPIView(APIView):
-#     permission_classes = [AllowAny]
 
-#     def post(self, request):
-#         try:
-#             username = request.data.get('username')
-#             password = request.data.get('password')
-            
-#             print("Received data:", request.data)  # Debugging: Print received data
-
-#             if not username or not password:
-#                 print("Username or password missing")
-#                 return Response(
-#                     {'message': 'Username and password are required.'},
-#                     status=status.HTTP_400_BAD_REQUEST
-#                 )
-
-#             try:
-#                 user = User.objects.get(username=username)
-#                 print("User found:", user)  # Debugging: Print user info
-#             except User.DoesNotExist:
-#                 print(f"User with username {username} not found")
-#                 return Response(
-#                     {'message': f'User with username {username} not found'},
-#                     status=status.HTTP_404_NOT_FOUND
-#                 )
-
-#             if not user.check_password(password):
-#                 print("Invalid password")
-#                 return Response(
-#                     {'message': 'Invalid credentials'},
-#                     status=status.HTTP_401_UNAUTHORIZED
-#                 )
-
-#             tokens = get_tokens_for_user(user)
-#             print("Generated tokens:", tokens)  # Debugging: Print generated tokens
-
-#             user_serializer = UserLoginSerializer(user)
-#             print("Serialized user data:", user_serializer.data)  # Debugging: Print serialized data
-
-#             data = {
-#                 'token': tokens,
-#                 'user': user_serializer.data,
-#                 'role': tokens.get('role', 'user')
-#             }
-
-#             print("Response data:", data)  # Debugging: Print final response data
-
-#             return Response(data, status=status.HTTP_200_OK)
-
-#         except Exception as e:
-#             print("Exception occurred:", str(e))  # Debugging: Print exception message
-#             return Response(
-#                 {'message': 'Internal server error', 'error': str(e)},
-#                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
-#             )
-
-
-        
         
 class TeacherViewSet(viewsets.ModelViewSet):
     queryset = Teacher.objects.all()

@@ -178,7 +178,7 @@ class ClassRoomSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ClassRoom
-        fields = ('id', 'name','division', 'capacity', 'classTeacher', 'students')
+        fields = ('id', 'name', 'capacity', 'classTeacher', 'students')
 
     def get_classTeacher(self, obj):
         class_teacher = obj.classroom_teachers.filter(is_class_teacher=True).first()
@@ -186,11 +186,11 @@ class ClassRoomSerializer(serializers.ModelSerializer):
             return ClassRoomTeacherChoiceSerializer(class_teacher).data
         return None
     
-    def validate_division(self, value):
-        value = value.strip().upper()
-        if not value.isalpha() or len(value) != 1:
-            raise serializers.ValidationError("Division must be a single uppercase letter from A to Z.")
-        return value
+    # def validate_division(self, value):
+    #     value = value.strip().upper()
+    #     if not value.isalpha() or len(value) != 1:
+    #         raise serializers.ValidationError("Division must be a single uppercase letter from A to Z.")
+    #     return value
 
 
     # def validate(self, data):
@@ -219,32 +219,11 @@ class FileUploadSerializer(serializers.Serializer):
 
 class ClassSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
-    division = serializers.CharField(required=True)
 
     class Meta:
         model = ClassRoom
-        fields = ['id', 'name', 'division']
+        fields = ['id', 'name']
 
-    def to_internal_value(self, data):
-        # If data is a string (e.g., "10A"), split it into name and division
-        if isinstance(data, str):
-            name_part = ''.join(filter(str.isdigit, data))   # Extract numeric part
-            division_part = ''.join(filter(str.isalpha, data))  # Extract alphabetic part
-            
-            # Replace data with the split name and division
-            data = {'name': name_part, 'division': division_part}
-
-        return super().to_internal_value(data)
-
-    def create(self, validated_data):
-        class_room, created = ClassRoom.objects.get_or_create(**validated_data)
-        return class_room
-
-
-
-
-# def generate_username(name):
-#         return ''.join(name.split()) + ''.join(random.choices(string.digits, k=2))
 
 class StudentUploadSerializer(serializers.ModelSerializer):
     pincode = serializers.CharField(max_length=10, write_only=True)
@@ -272,11 +251,6 @@ class StudentUploadSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user_data = validated_data.pop("user")
         class_room_data = validated_data.pop("classRoom")
-        
-        # if 'username' not in user_data or not user_data['username']:
-        #     name = user_data.get('name', '')
-            # username = generate_username(name)  
-            # user_data['username'] = username
 
         user = User.objects.create_user(**user_data)
         class_room, _ = ClassRoom.objects.get_or_create(**class_room_data)
@@ -293,14 +267,7 @@ class StudentUploadSerializer(serializers.ModelSerializer):
         return student
 
     def validate(self, data):
-        user_data = data.get("user")
-        username = user_data.get("username")
         admission_no = data.get("admission_no")
-
-        if User.objects.filter(username=username).exists():
-            raise serializers.ValidationError(
-                {"user.username": f"The username '{username}' is already taken."}
-            )
 
         if Student.objects.filter(admission_no=admission_no).exists():
             raise serializers.ValidationError(
