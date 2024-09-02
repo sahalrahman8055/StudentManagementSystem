@@ -91,9 +91,8 @@ class UserStudentSerializer(serializers.ModelSerializer):
             "email": {
                 "write_only": True,
                 "required": False,
-            }  # Exclude email from validation and creation
+            }
         }
-
 
 class StudentSerializer(serializers.ModelSerializer):
     user = UserStudentSerializer()
@@ -115,29 +114,26 @@ class StudentSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user_data = validated_data.pop("user")
-        # username = user_data.get("username")
         admission_no = validated_data.get("admission_no")
 
-        # Check if user with the same username already exists
-        # if User.objects.filter(username=username).exists():
-        #     raise serializers.ValidationError(
-        #         {"username": f"The username '{username}' is already taken."}
-        #     )
-
-        # Check if student with the same admission number already exists
+        # Validate if student with the same admission number already exists
         if Student.objects.filter(admission_no=admission_no).exists():
             raise serializers.ValidationError(
                 {"admission_no": f"The admission number '{admission_no}' is already taken."}
             )
 
+        # Create the User instance
         user = User.objects.create_user(**user_data)
 
+        # Create the Student instance and associate it with the User
         student = Student.objects.create(user=user, **validated_data)
 
-        student_group = Group.objects.get(name="student")
-        student_group.user_set.add(user) 
+        # Add the user to the 'students' group
+        student_group, created = Group.objects.get_or_create(name='students')
+        student_group.user_set.add(user)
 
         return student
+
 
 
 
