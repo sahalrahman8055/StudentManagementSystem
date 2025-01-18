@@ -25,6 +25,7 @@ from rest_framework.generics import CreateAPIView
 from rest_framework.decorators import action
 import openpyxl 
 from rest_framework.parsers import MultiPartParser, FormParser
+from student.Pagination import SmallResultPagination                                                                                                
 
 class AdminLoginAPIView(APIView):
     permission_classes = [AllowAny]
@@ -82,8 +83,9 @@ class StudentViewSet(viewsets.ModelViewSet):
     queryset = Student.objects.all()
     permission_classes = [IsAdminUser]  
     serializer_class = StudentSerializer
-    filter_backends = [filters.SearchFilter]
-    search_fields = ["user__name","admission_no"]
+    # filter_backends = [filters.SearchFilter]
+    # search_fields = ["user__name","admission_no"]
+    pagination_class = SmallResultPagination
 
     def perform_create(self, serializer):
         classroom_id = self.request.query_params.get("classroom_id")

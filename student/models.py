@@ -14,7 +14,7 @@ class Student(models.Model):
     post_office = models.CharField(max_length=100, blank=True, null=True)
     pincode = models.CharField(max_length=6, blank=True, null=True)
     place = models.CharField(max_length=100, blank=True, null=True)
-    # route = models.ForeignKey(Route, related_name="students", on_delete=models.CASCADE,blank=True,null=True)
+    route = models.ForeignKey(Route, related_name="students", on_delete=models.CASCADE,blank=True,null=True)
     classRoom = models.ForeignKey(
         ClassRoom,
         on_delete=models.CASCADE,
@@ -23,6 +23,7 @@ class Student(models.Model):
         related_name="students",
     )
     is_bus = models.BooleanField(default=False)
+    
 
     def __str__(self) -> str:
         return f"{self.admission_no} - {self.user.name}"

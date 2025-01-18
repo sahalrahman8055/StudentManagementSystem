@@ -17,7 +17,7 @@ class StudentClassSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ClassRoom
-        fields = ['id', 'name','division']
+        fields = ['id', 'name']
         
 class BusStudentSerializer(serializers.ModelSerializer):
     user = UserStudentSerializer()
